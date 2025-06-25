@@ -1,4 +1,3 @@
-//TODO: Configure frontend react elements and fetch data from api controller
 import React, { useState, useEffect } from 'react';
 
 function JobApplicationsList() {
@@ -7,35 +6,30 @@ function JobApplicationsList() {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const fakeData = [
-            {
-                id: 1,
-                companyName: "Test Company 1",
-                role: "Software Developer",
-                status: "Applied",
-                applicationDate: "2024-01-15",
-                location: "Remote",
-                salaryEstimate: "$80k-100k",
-                notes: "Applied through website"
-            },
-            {
-                id: 2,
-                companyName: "Test Company 2",
-                role: "Frontend Developer",
-                status: "Interview",
-                applicationDate: "2024-01-10",
-                location: "New York",
-                salaryEstimate: "$90k-110k",
-                notes: "Phone screen completed"
+        const fetchJobApplications = async () => {
+            try {
+                setLoading(true);
+                setError(null); 
+
+                const response = await fetch('/api/JobApplication');
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                setJobApplications(data);
+
+            } catch (err) {
+                setError(err.message);
+                console.error('Error fetching job applications:', err);
+            } finally {
+                setLoading(false);
             }
-        ];
+        };
 
-        setTimeout(() => {
-            setJobApplications(fakeData);
-            setLoading(false);
-        }, 1000);
-
-    }, []);
+        fetchJobApplications();
+    }, []); 
 
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
