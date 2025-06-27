@@ -41,9 +41,9 @@ function JobApplicationsList() {
     if (jobApplications.length === 0) return <div>No job applications found</div>;
 
     return (
-        <div>
-            <h1>Job Applications</h1>
-            <table border="1">
+        <div class="text-center">
+            <h1 class="py-3">Job Applications</h1>
+            <table class="table table-hover pt-1 m-2">
                 <thead>
                     <tr>
                         <th>Company</th>
