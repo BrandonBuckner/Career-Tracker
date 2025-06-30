@@ -38,8 +38,7 @@ function JobApplicationsList() {
     const getStatusBadge = (status) => {
         const statusMap = {
             'Applied': 'bg-primary',
-            'Interview Scheduled': 'bg-warning text-dark',
-            'Interviewed': 'bg-info',
+            'Interviewing': 'bg-warning text-dark',
             'Offer': 'bg-success',
             'Rejected': 'bg-danger',
             'Withdrawn': 'bg-secondary'
@@ -58,7 +57,7 @@ function JobApplicationsList() {
     const getStats = () => {
         const total = jobApplications.length;
         const applied = jobApplications.filter(job => job.status === 'Applied').length;
-        const interviews = jobApplications.filter(job => job.status === 'Interview Scheduled' || job.status === 'Interviewed').length;
+        const interviews = jobApplications.filter(job => job.status === 'Interviewing').length;
         const offers = jobApplications.filter(job => job.status === 'Offer').length;
         return { total, applied, interviews, offers };
     };
@@ -168,7 +167,7 @@ function JobApplicationsList() {
                         </div>
                         <div className="card-body">
                             {/* Sort the date to show most recent applications first, then map and show */}
-                            {jobApplications.sort((a, b) => new Date(b.applicationDate) - new Date(a.applicationDate)).slice(0, 2).map(app => (
+                            {jobApplications.sort((a, b) => new Date(b.applicationDate) - new Date(a.applicationDate)).slice(0, 5).map(app => (
                                 <div key={app.id} className="d-flex justify-content-between align-items-center border-bottom py-3 cursor-pointer"
                                     onClick={() => setSelectedJob(app)}
                                     style={{ cursor: 'pointer' }}>
@@ -337,8 +336,7 @@ function JobApplicationsList() {
                         <select className="form-select" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
                             <option value="all">All Status</option>
                             <option value="Applied">Applied</option>
-                            <option value="Interview Scheduled">Interview Scheduled</option>
-                            <option value="Interviewed">Interviewed</option>
+                            <option value="Interviewing">Interviewing</option>
                             <option value="Offer">Offer</option>
                             <option value="Rejected">Rejected</option>
                             <option value="Withdrawn">Withdrawn</option>
