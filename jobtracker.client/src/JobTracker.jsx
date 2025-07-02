@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect } from 'react';
+import Navigation from './components/Navigation';
 import StatsCard from './components/StatsCard';
 
 function JobApplicationsList() {
@@ -57,34 +58,13 @@ function JobApplicationsList() {
 
     const getStats = () => {
         const total = jobApplications.length;
-        const applied = jobApplications.filter(job => job.status === 'Applied').length;
         const interviews = jobApplications.filter(job => job.status === 'Interviewing').length;
+        const totalInterviews = jobApplications.reduce((total, job) => total + (job.interviewDates?.length ?? 0), 0);
         const offers = jobApplications.filter(job => job.status === 'Offer').length;
-        return { total, applied, interviews, offers };
+        return { total, interviews, totalInterviews, offers };
     };
 
     const stats = getStats();
-
-    /* Creates the navigation menu to change to different parts of application
-    * On click has a special parameter to prevent it from changing the URL otherwise it changes to the correct view
-    */
-    const renderNavigation = () => (
-        <nav className="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-            <div className="container-fluid">
-                <a className="navbar-brand" href="/" onClick={(e) => { e.preventDefault(),setActiveView('dashboard') }}>
-                    <div className="bi bi-briefcase me-2"></div>Job Tracker
-                </a>
-                <div className="navbar-nav">
-                    <a className={`nav-link ${activeView === 'dashboard' ? 'active' : ''}`} href="/" onClick={(e) => { e.preventDefault(), setActiveView('dashboard') }}>
-                        Dashboard
-                    </a>
-                    <a className={`nav-link ${activeView === 'applications' ? 'active' : ''}`} href="/" onClick={(e) => { e.preventDefault(), setActiveView('applications') }}>
-                        Applications
-                    </a>
-                </div>
-            </div>
-        </nav>
-    );
 
     /* Create and Display the main page dashboard */
     const renderDashboard = () => (
@@ -98,8 +78,8 @@ function JobApplicationsList() {
             {/* Stats Cards */}
             <div className="row mb-4">
                 <StatsCard title="Total Applications" value={stats.total} icon="📊" bgColor="bg-primary" textColor="text-white"/>
-                <StatsCard title="Pending Response" value={stats.applied} icon="⏰" bgColor="bg-warning" textColor="text-black" />
-                <StatsCard title="Interviews" value={stats.interviews} icon="📅" bgColor="bg-info" textColor="text-white" />
+                <StatsCard title="Pending Interview" value={stats.interviews} icon="⏰" bgColor="bg-warning" textColor="text-black" />
+                <StatsCard title="Total Interviews" value={stats.totalInterviews} icon="📅" bgColor="bg-info" textColor="text-white" />
                 <StatsCard title="Offers" value={stats.offers} icon="🏆" bgColor="bg-success" textColor="text-white" />
             </div>
 
@@ -373,7 +353,7 @@ function JobApplicationsList() {
 
     return (
         <div className="min-vh-100 bg-light">
-            {renderNavigation()}
+            <Navigation activeView={activeView} onViewChange={setActiveView} />
             {selectedJob ? renderJobDetail() : (
                 activeView === 'dashboard' ? renderDashboard() : renderApplications()
             )}
