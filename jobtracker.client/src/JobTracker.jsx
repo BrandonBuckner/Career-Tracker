@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect } from 'react';
+import StatsCard from './components/StatsCard';
 
 function JobApplicationsList() {
     const [jobApplications, setJobApplications] = useState([]);
@@ -96,66 +97,10 @@ function JobApplicationsList() {
 
             {/* Stats Cards */}
             <div className="row mb-4">
-                <div className="col-md-3 mb-3">
-                    <div className="card bg-primary text-white h-100">
-                        <div className="card-body">
-                            <div className="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h4 className="card-title">{stats.total}</h4>
-                                    <p className="card-text mb-0">Total Applications</p>
-                                </div>
-                                <div className="fs-1 opacity-75">
-                                    📄
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className="col-md-3 mb-3">
-                    <div className="card bg-warning text-dark h-100">
-                        <div className="card-body">
-                            <div className="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h4 className="card-title">{stats.applied}</h4>
-                                    <p className="card-text mb-0">Pending Response</p>
-                                </div>
-                                <div className="fs-1 opacity-75">
-                                    ⏰
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className="col-md-3 mb-3">
-                    <div className="card bg-info text-white h-100">
-                        <div className="card-body">
-                            <div className="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h4 className="card-title">{stats.interviews}</h4>
-                                    <p className="card-text mb-0">Interviews</p>
-                                </div>
-                                <div className="fs-1 opacity-75">
-                                    📅
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className="col-md-3 mb-3">
-                    <div className="card bg-success text-white h-100">
-                        <div className="card-body">
-                            <div className="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h4 className="card-title">{stats.offers}</h4>
-                                    <p className="card-text mb-0">Offers</p>
-                                </div>
-                                <div className="fs-1 opacity-75">
-                                    🏆
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <StatsCard title="Total Applications" value={stats.total} icon="📊" bgColor="bg-primary" textColor="text-white"/>
+                <StatsCard title="Pending Response" value={stats.applied} icon="⏰" bgColor="bg-warning" textColor="text-black" />
+                <StatsCard title="Interviews" value={stats.interviews} icon="📅" bgColor="bg-info" textColor="text-white" />
+                <StatsCard title="Offers" value={stats.offers} icon="🏆" bgColor="bg-success" textColor="text-white" />
             </div>
 
             {/* Recent Applications */}
