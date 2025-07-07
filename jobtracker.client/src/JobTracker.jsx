@@ -3,6 +3,7 @@ import Navigation from './components/Navigation';
 import StatsCard from './components/StatsCard';
 import RecentApplicationsList from './components/RecentApplicationsList';
 import JobDetail from './components/JobDetail';
+import ApplicationTable from './components/ApplicationTable';
 
 function JobTracker() {
     const [jobApplications, setJobApplications] = useState([]);
@@ -120,83 +121,29 @@ function JobTracker() {
 
     function renderApplications() {
         return (
-            <div className="container-fluid">
-                <div className="row mb-4">
-                    <div className="col-md-6">
-                        <h2>Job Applications</h2>
-                    </div>
-                    <div className="col-md-6">
-                        <div className="d-flex gap-2">
-                            <input type="text" className="form-control" placeholder="Search companies or roles..."
-                                value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-                            <select className="form-select" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-                                <option value="all">All Status</option>
-                                <option value="Applied">Applied</option>
-                                <option value="Interviewing">Interviewing</option>
-                                <option value="Offer">Offer</option>
-                                <option value="Rejected">Rejected</option>
-                                <option value="Withdrawn">Withdrawn</option>
-                            </select>
+            <div>
+                <div className="container-fluid">
+                    <div className="row mb-4">
+                        <div className="col-md-6">
+                            <h2>Job Applications</h2>
+                        </div>
+                        <div className="col-md-6">
+                            <div className="d-flex gap-2">
+                                <input type="text" className="form-control" placeholder="Search companies or roles..."
+                                    value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                                <select className="form-select" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+                                    <option value="all">All Status</option>
+                                    <option value="Applied">Applied</option>
+                                    <option value="Interviewing">Interviewing</option>
+                                    <option value="Offer">Offer</option>
+                                    <option value="Rejected">Rejected</option>
+                                    <option value="Withdrawn">Withdrawn</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                <div className="card">
-                    <div className="card-body">
-                        <div className="table-responsive">
-                            <table className="table table-hover">
-                                <thead className="table-dark">
-                                    <tr>
-                                        <th>Company</th>
-                                        <th>Role</th>
-                                        <th>Status</th>
-                                        <th>Applied Date</th>
-                                        <th>Location</th>
-                                        <th>Salary</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredJobs.map(app => (
-                                        <tr key={app.id} style={{ cursor: 'pointer' }} onClick={() => setSelectedJob(app)}>
-                                            <td>
-                                                <div>
-                                                    <strong>{app.companyName}</strong>
-                                                    {app.referral && <span className="badge bg-info ms-2">Referral</span>}
-                                                </div>
-                                            </td>
-                                            <td>{app.role}</td>
-                                            <td>
-                                                <span className={`badge ${getStatusBadge(app.status)}`}>
-                                                    {app.status}
-                                                </span>
-                                            </td>
-                                            <td>{formatDate(app.applicationDate)}</td>
-                                            <td>{app.location || 'N/A'}</td>
-                                            <td>{app.salaryEstimate || 'N/A'}</td>
-                                            <td>
-                                                <button
-                                                    className="btn btn-outline-primary btn-sm"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        setSelectedJob(app);
-                                                    } }
-                                                >
-                                                    View
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                            {filteredJobs.length === 0 && (
-                                <div className="text-center py-4">
-                                    <p className="text-muted">No applications found matching your criteria.</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
+                <ApplicationTable filteredJobs={filteredJobs} setSelectedJob={setSelectedJob} getStatusBadge={getStatusBadge} formatDate={formatDate} />
             </div>
         );
     }
