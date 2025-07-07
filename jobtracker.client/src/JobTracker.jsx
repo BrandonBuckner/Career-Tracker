@@ -1,9 +1,8 @@
 ﻿import React, { useState, useEffect } from 'react';
 import Navigation from './components/Navigation';
-import StatsCard from './components/StatsCard';
-import RecentApplicationsList from './components/RecentApplicationsList';
 import JobDetail from './components/JobDetail';
 import ApplicationTable from './components/ApplicationTable';
+import Dashboard from './components/Dashboard';
 
 function JobTracker() {
     const [jobApplications, setJobApplications] = useState([]);
@@ -18,6 +17,7 @@ function JobTracker() {
     const [dashboardLoaded, setDashboardLoaded] = useState(false);
     const [applicationsLoaded, setApplicationsLoaded] = useState(false);
 
+    // This method decides when to fetch new data 
     useEffect(() => {
         if (activeView === 'dashboard' && !dashboardLoaded) {
             fetchDashboardData();
@@ -97,28 +97,6 @@ function JobTracker() {
         return matchesStatus && matchesSearch;
     });
 
-    /* Create and Display the main page dashboard */
-    const renderDashboard = () => (
-        <div className="container-fluid">
-            <div className="row mb-4">
-                <div className="col-12">
-                    <h2 className="mb-4">Dashboard Overview</h2>
-                </div>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="row mb-4">
-                <StatsCard title="Total Applications" value={statsData.totalApplications || 0} icon="📊" bgColor="bg-primary" textColor="text-white" />
-                <StatsCard title="Pending Interview" value={statsData.pendingInterviews || 0} icon="⏰" bgColor="bg-warning" textColor="text-black" />
-                <StatsCard title="Total Interviews" value={statsData.totalInterviews || 0} icon="📅" bgColor="bg-info" textColor="text-white" />
-                <StatsCard title="Offers" value={statsData.totalOffers || 0} icon="🏆" bgColor="bg-success" textColor="text-white" />
-            </div>
-
-            {/* Recent Applications List */}
-            <RecentApplicationsList recentJobs={recentJobs} setSelectedJob={setSelectedJob} formatDate={formatDate} getStatusBadge={getStatusBadge} setActiveView={setActiveView} />
-        </div>
-    );
-
     function renderApplications() {
         return (
             <div>
@@ -173,11 +151,15 @@ function JobTracker() {
         );
     } 
 
+    // Decides what to render on the UI side
     return (
         <div className="min-vh-100 bg-light">
             <Navigation activeView={activeView} onViewChange={setActiveView} />
-            {selectedJob ? <JobDetail activeView={activeView} selectedJob={selectedJob} setSelectedJob={setSelectedJob} getStatusBadge={getStatusBadge} formatDate={formatDate} />
-                : (activeView === 'dashboard' ? renderDashboard() : renderApplications())
+            {selectedJob ?
+                <JobDetail activeView={activeView} selectedJob={selectedJob} setSelectedJob={setSelectedJob} getStatusBadge={getStatusBadge} formatDate={formatDate} />
+                : (activeView === 'dashboard' ?
+                    <Dashboard statsData={statsData} recentJobs={recentJobs} setSelectedJob={setSelectedJob} setActiveView={setActiveView} formatDate = { formatDate } getStatusBadge = {getStatusBadge}/> 
+                    : renderApplications())
             }
         </div>
     );
