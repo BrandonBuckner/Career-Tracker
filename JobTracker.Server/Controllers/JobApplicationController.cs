@@ -12,7 +12,12 @@ namespace JobTracker.Server.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<JobApplication>> GetAllApplications()
         {
-            return Ok(staticJobApplications);
+            var sortedApplications = staticJobApplications
+                .OrderByDescending(app => app.ApplicationDate)
+                .ThenBy(app => app.CompanyName)
+                .ToList();
+
+            return Ok(sortedApplications);
         }
 
         [HttpGet("{id}")]
@@ -67,6 +72,23 @@ namespace JobTracker.Server.Controllers
                               app.Role.Contains(term, StringComparison.OrdinalIgnoreCase))
                 .ToList();
             return Ok(applications);
+        }
+
+        [HttpGet("recent")]
+        public ActionResult<IEnumerable<JobApplication>> GetRecentApplications([FromQuery] int limit = 5)
+        {
+            if(limit <= 0) { 
+                return BadRequest("Limit must be a positive integer.");
+            }
+            if(limit > 20) {
+                return BadRequest("Limit cannot exceed 20.");
+            }
+
+            var recentApplications = staticJobApplications
+                .OrderByDescending(app => app.ApplicationDate)
+                .Take(limit)
+                .ToList();
+            return Ok(recentApplications);
         }
 
         //TODO: Update this to be a database instead of static data 

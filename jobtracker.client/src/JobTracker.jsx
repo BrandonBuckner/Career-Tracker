@@ -1,6 +1,10 @@
 ﻿import React, { useState, useEffect } from 'react';
+import Navigation from './components/Navigation';
+import JobDetail from './components/JobDetail';
+import Dashboard from './components/Dashboard';
+import ApplicationsPage from './components/ApplicationsPage';
 
-function JobApplicationsList() {
+function JobTracker() {
     const [jobApplications, setJobApplications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -8,33 +12,73 @@ function JobApplicationsList() {
     const [activeView, setActiveView] = useState('dashboard');
     const [filterStatus, setFilterStatus] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
+    const [recentJobs, setRecentJobs] = useState([]);
+    const [statsData, setStatsData] = useState({});
+    const [dashboardLoaded, setDashboardLoaded] = useState(false);
+    const [applicationsLoaded, setApplicationsLoaded] = useState(false);
 
+    // This method decides when to fetch new data 
     useEffect(() => {
-        const fetchJobApplications = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-                const response = await fetch('/api/JobApplication');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-                setJobApplications(data);
-            } catch (err) {
-                setError(err.message);
-                console.error('Error fetching job applications:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchJobApplications();
-    }, []);
+        if (activeView === 'dashboard' && !dashboardLoaded) {
+            fetchDashboardData();
+        } else if (activeView === 'applications' && !applicationsLoaded) {
+            fetchAllApplications();
+        }
+    }, [activeView, dashboardLoaded, applicationsLoaded]);
 
+    const fetchDashboardData = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            // Fetch both recent jobs and stats
+            const [recentResponse, statsResponse] = await Promise.all([
+                fetch('/api/JobApplication/recent?limit=5'),
+                fetch('/api/JobApplication/stats'),
+            ]);
+            if (!recentResponse.ok || !statsResponse.ok) {
+                throw new Error('Failed to fetch dashboard data');
+            }
+            // Convert responses to JSON
+            const recentData = await recentResponse.json();
+            const statsDataResponse = await statsResponse.json();
+            // Sets Data 
+            setRecentJobs(recentData);
+            setStatsData(statsDataResponse);
+            setDashboardLoaded(true);
+        } catch (err) {
+            setError(err.message);
+            console.error('Error fetching dashboard data:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchAllApplications = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const response = await fetch('/api/JobApplication');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            setJobApplications(data);
+            setApplicationsLoaded(true);
+        } catch (err) {
+            setError(err.message);
+            console.error('Error fetching job applications:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Formats date to ensure it uses Date object or returns 'N/A' if no date is provided
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
         return new Date(dateString).toLocaleDateString();
     };
 
+    // Status map to determine the badge color based on job status
     const getStatusBadge = (status) => {
         const statusMap = {
             'Applied': 'bg-primary',
@@ -54,356 +98,6 @@ function JobApplicationsList() {
         return matchesStatus && matchesSearch;
     });
 
-    const getStats = () => {
-        const total = jobApplications.length;
-        const applied = jobApplications.filter(job => job.status === 'Applied').length;
-        const interviews = jobApplications.filter(job => job.status === 'Interviewing').length;
-        const offers = jobApplications.filter(job => job.status === 'Offer').length;
-        return { total, applied, interviews, offers };
-    };
-
-    const stats = getStats();
-
-    /* Creates the navigation menu to change to different parts of application
-    * On click has a special parameter to prevent it from changing the URL otherwise it changes to the correct view
-    */
-    const renderNavigation = () => (
-        <nav className="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-            <div className="container-fluid">
-                <a className="navbar-brand" href="/" onClick={(e) => { e.preventDefault(),setActiveView('dashboard') }}>
-                    <div className="bi bi-briefcase me-2"></div>Job Tracker
-                </a>
-                <div className="navbar-nav">
-                    <a className={`nav-link ${activeView === 'dashboard' ? 'active' : ''}`} href="/" onClick={(e) => { e.preventDefault(), setActiveView('dashboard') }}>
-                        Dashboard
-                    </a>
-                    <a className={`nav-link ${activeView === 'applications' ? 'active' : ''}`} href="/" onClick={(e) => { e.preventDefault(), setActiveView('applications') }}>
-                        Applications
-                    </a>
-                </div>
-            </div>
-        </nav>
-    );
-
-    /* Create and Display the main page dashboard */
-    const renderDashboard = () => (
-        <div className="container-fluid">
-            <div className="row mb-4">
-                <div className="col-12">
-                    <h2 className="mb-4">Dashboard Overview</h2>
-                </div>
-            </div>
-
-            {/* Stats Cards */}
-            <div className="row mb-4">
-                <div className="col-md-3 mb-3">
-                    <div className="card bg-primary text-white h-100">
-                        <div className="card-body">
-                            <div className="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h4 className="card-title">{stats.total}</h4>
-                                    <p className="card-text mb-0">Total Applications</p>
-                                </div>
-                                <div className="fs-1 opacity-75">
-                                    📄
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className="col-md-3 mb-3">
-                    <div className="card bg-warning text-dark h-100">
-                        <div className="card-body">
-                            <div className="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h4 className="card-title">{stats.applied}</h4>
-                                    <p className="card-text mb-0">Pending Response</p>
-                                </div>
-                                <div className="fs-1 opacity-75">
-                                    ⏰
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className="col-md-3 mb-3">
-                    <div className="card bg-info text-white h-100">
-                        <div className="card-body">
-                            <div className="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h4 className="card-title">{stats.interviews}</h4>
-                                    <p className="card-text mb-0">Interviews</p>
-                                </div>
-                                <div className="fs-1 opacity-75">
-                                    📅
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div className="col-md-3 mb-3">
-                    <div className="card bg-success text-white h-100">
-                        <div className="card-body">
-                            <div className="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h4 className="card-title">{stats.offers}</h4>
-                                    <p className="card-text mb-0">Offers</p>
-                                </div>
-                                <div className="fs-1 opacity-75">
-                                    🏆
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Recent Applications */}
-            <div className="row">
-                <div className="col-12">
-                    <div className="card">
-                        <div className="card-header">
-                            <h5 className="mb-0">Recent Applications</h5>
-                        </div>
-                        <div className="card-body">
-                            {/* Sort the date to show most recent applications first, then map and show */}
-                            {jobApplications.sort((a, b) => new Date(b.applicationDate) - new Date(a.applicationDate)).slice(0, 5).map(app => (
-                                <div key={app.id} className="d-flex justify-content-between align-items-center border-bottom py-3 cursor-pointer"
-                                    onClick={() => setSelectedJob(app)}
-                                    style={{ cursor: 'pointer' }}>
-                                    <div>
-                                        <strong>{app.companyName}</strong> - {app.role}
-                                        <br />
-                                        <small className="text-muted">Applied: {formatDate(app.applicationDate)}</small>
-                                    </div>
-                                    <span className={`badge ${getStatusBadge(app.status)}`}>
-                                        {app.status}
-                                    </span>
-                                </div>
-                            ))}
-                            {jobApplications.length > 5 && (
-                                <div className="text-center mt-3">
-                                    <button className="btn btn-outline-primary" onClick={() => setActiveView('applications')}>
-                                        View All Applications
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-
-    const renderJobDetail = () => (
-        <div className="container-fluid">
-            <button
-                className="btn btn-outline-secondary mb-3"
-                onClick={() => setSelectedJob(null)}
-            >
-                ← Back to {activeView === 'dashboard' ? 'Dashboard' : 'Applications'}
-            </button>
-
-            <div className="row">
-                <div className="col-md-8">
-                    <div className="card">
-                        <div className="card-header bg-primary-subtle">
-                            <h3 className="mb-0">{selectedJob.role}</h3>
-                            <h5 className="text-muted mb-0">{selectedJob.companyName}</h5>
-                        </div>
-                        <div className="card-body">
-                            <div className="row mb-3">
-                                <div className="col-md-6">
-                                    <strong>Status:</strong>
-                                    <span className={`badge ms-2 ${getStatusBadge(selectedJob.status)}`}>
-                                        {selectedJob.status}
-                                    </span>
-                                </div>
-                                <div className="col-md-6">
-                                    <strong>Job Type:</strong> {selectedJob.jobType || 'N/A'}
-                                </div>
-                            </div>
-
-                            <div className="row mb-3">
-                                <div className="col-md-6">
-                                    <strong>Location:</strong> {selectedJob.location || 'N/A'}
-                                </div>
-                                <div className="col-md-6">
-                                    <strong>Salary:</strong> {selectedJob.salaryEstimate || 'N/A'}
-                                </div>
-                            </div>
-
-                            <div className="row mb-3">
-                                <div className="col-md-6">
-                                    <strong>Applied Date:</strong> {formatDate(selectedJob.applicationDate)}
-                                </div>
-                                <div className="col-md-6">
-                                    <strong>Last Contact:</strong> {formatDate(selectedJob.lastHeardDate)}
-                                </div>
-                            </div>
-
-                            {selectedJob.referral && (
-                                <div className="alert alert-info">
-                                    <strong>📞 Applied through referral</strong>
-                                </div>
-                            )}
-
-                            {selectedJob.roleDescription && (
-                                <div className="mb-3">
-                                    <h6>Role Description:</h6>
-                                    <p className="text-muted">{selectedJob.roleDescription}</p>
-                                </div>
-                            )}
-
-                            {selectedJob.notes && (
-                                <div className="mb-3">
-                                    <h6>Notes:</h6>
-                                    <div className="alert alert-light">
-                                        {selectedJob.notes}
-                                    </div>
-                                </div>
-                            )}
-
-                            {selectedJob.jobLink && (
-                                <div className="mb-3">
-                                    <a href={selectedJob.jobLink} target="_blank" rel="noopener noreferrer" className="btn btn-outline-primary">
-                                        🔗 View Job Posting
-                                    </a>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="col-md-4">
-                    <div className="card">
-                        <div className="card-header">
-                            <h6 className="mb-0">Interview Timeline</h6>
-                        </div>
-                        <div className="card-body">
-                            {selectedJob.interviewDates && selectedJob.interviewDates.length > 0 ? (
-                                <div className="timeline">
-                                    {selectedJob.interviewDates.map((date, index) => (
-                                        <div key={index} className="d-flex align-items-center mb-2">
-                                            <span className="badge bg-primary me-2">{index + 1}</span>
-                                            <span>Interview: {formatDate(date)}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className="text-muted">No interviews scheduled</p>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="card mt-3">
-                        <div className="card-header">
-                            <h6 className="mb-0">Application Details</h6>
-                        </div>
-                        <div className="card-body">
-                            <div className="mb-2">
-                                <small className="text-muted">Application ID:</small><br />
-                                <span>#{selectedJob.id}</span>
-                            </div>
-                            <div className="mb-2">
-                                <small className="text-muted">Days Since Applied:</small><br />
-                                <span>{Math.floor((new Date() - new Date(selectedJob.applicationDate)) / (1000 * 60 * 60 * 24))} days</span>
-                            </div>
-                            {selectedJob.lastHeardDate && (
-                                <div className="mb-2">
-                                    <small className="text-muted">Days Since Last Contact:</small><br />
-                                    <span>{Math.floor((new Date() - new Date(selectedJob.lastHeardDate)) / (1000 * 60 * 60 * 24))} days</span>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-
-    const renderApplications = () => (
-        <div className="container-fluid">
-            <div className="row mb-4">
-                <div className="col-md-6">
-                    <h2>Job Applications</h2>
-                </div>
-                <div className="col-md-6">
-                    <div className="d-flex gap-2">
-                        <input type="text" className="form-control" placeholder="Search companies or roles..."
-                            value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                        <select className="form-select" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-                            <option value="all">All Status</option>
-                            <option value="Applied">Applied</option>
-                            <option value="Interviewing">Interviewing</option>
-                            <option value="Offer">Offer</option>
-                            <option value="Rejected">Rejected</option>
-                            <option value="Withdrawn">Withdrawn</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div className="card">
-                <div className="card-body">
-                    <div className="table-responsive">
-                        <table className="table table-hover">
-                            <thead className="table-dark">
-                                <tr>
-                                    <th>Company</th>
-                                    <th>Role</th>
-                                    <th>Status</th>
-                                    <th>Applied Date</th>
-                                    <th>Location</th>
-                                    <th>Salary</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredJobs.map(app => (
-                                    <tr key={app.id} style={{ cursor: 'pointer' }} onClick={() => setSelectedJob(app)}>
-                                        <td>
-                                            <div>
-                                                <strong>{app.companyName}</strong>
-                                                {app.referral && <span className="badge bg-info ms-2">Referral</span>}
-                                            </div>
-                                        </td>
-                                        <td>{app.role}</td>
-                                        <td>
-                                            <span className={`badge ${getStatusBadge(app.status)}`}>
-                                                {app.status}
-                                            </span>
-                                        </td>
-                                        <td>{formatDate(app.applicationDate)}</td>
-                                        <td>{app.location || 'N/A'}</td>
-                                        <td>{app.salaryEstimate || 'N/A'}</td>
-                                        <td>
-                                            <button
-                                                className="btn btn-outline-primary btn-sm"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setSelectedJob(app);
-                                                }}
-                                            >
-                                                View
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                        {filteredJobs.length === 0 && (
-                            <div className="text-center py-4">
-                                <p className="text-muted">No applications found matching your criteria.</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-
     if (loading) return (
         <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }}>
             <div className="spinner-border text-primary" role="status">
@@ -419,21 +113,30 @@ function JobApplicationsList() {
         </div>
     );
 
-    if (jobApplications.length === 0) return (
-        <div className="text-center py-5">
-            <h3>No job applications found</h3>
-            <p className="text-muted">Start tracking your job applications to see them here.</p>
-        </div>
-    );
+    // Check if there are no recent jobs to display. If so, show a message stating nothing was found
+    if (activeView === 'dashboard' && recentJobs.length === 0 && dashboardLoaded) {
+        return (
+            <div className="text-center py-5">
+                <h3>No job applications found</h3>
+                <p className="text-muted">Start tracking your job applications to see them here.</p>
+            </div>
+        );
+    } 
 
+    // Decides what to render on the UI side
     return (
         <div className="min-vh-100 bg-light">
-            {renderNavigation()}
-            {selectedJob ? renderJobDetail() : (
-                activeView === 'dashboard' ? renderDashboard() : renderApplications()
-            )}
+            <Navigation activeView={activeView} onViewChange={setActiveView} />
+            {selectedJob ?
+                <JobDetail activeView={activeView} selectedJob={selectedJob} setSelectedJob={setSelectedJob} getStatusBadge={getStatusBadge} formatDate={formatDate} />
+                : (activeView === 'dashboard' ?
+                    <Dashboard statsData={statsData} recentJobs={recentJobs} setSelectedJob={setSelectedJob} setActiveView={setActiveView} formatDate={formatDate} getStatusBadge={getStatusBadge} />
+                    : <ApplicationsPage searchTerm={searchTerm} setSearchTerm={setSearchTerm} filterStatus={filterStatus}
+                        setFilterStatus={setFilterStatus} filteredJobs={filteredJobs} setSelectedJob={setSelectedJob} getStatusBadge={getStatusBadge} formatDate={formatDate}/>
+                )
+            }
         </div>
     );
 }
 
-export default JobApplicationsList;
+export default JobTracker;
