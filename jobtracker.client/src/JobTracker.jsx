@@ -1,7 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import Navigation from './components/Navigation';
 import JobDetail from './components/JobDetail';
-import ApplicationTable from './components/ApplicationTable';
 import Dashboard from './components/Dashboard';
 import ApplicationsPage from './components/ApplicationsPage';
 
@@ -36,14 +35,13 @@ function JobTracker() {
                 fetch('/api/JobApplication/recent?limit=5'),
                 fetch('/api/JobApplication/stats'),
             ]);
-
             if (!recentResponse.ok || !statsResponse.ok) {
                 throw new Error('Failed to fetch dashboard data');
             }
-
+            // Convert responses to JSON
             const recentData = await recentResponse.json();
             const statsDataResponse = await statsResponse.json();
-
+            // Sets Data 
             setRecentJobs(recentData);
             setStatsData(statsDataResponse);
             setDashboardLoaded(true);
@@ -74,11 +72,13 @@ function JobTracker() {
         }
     };
 
+    // Formats date to ensure it uses Date object or returns 'N/A' if no date is provided
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
         return new Date(dateString).toLocaleDateString();
     };
 
+    // Status map to determine the badge color based on job status
     const getStatusBadge = (status) => {
         const statusMap = {
             'Applied': 'bg-primary',
