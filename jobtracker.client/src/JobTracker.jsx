@@ -3,6 +3,7 @@ import Navigation from './components/Navigation';
 import JobDetail from './components/JobDetail';
 import ApplicationTable from './components/ApplicationTable';
 import Dashboard from './components/Dashboard';
+import ApplicationsPage from './components/ApplicationsPage';
 
 function JobTracker() {
     const [jobApplications, setJobApplications] = useState([]);
@@ -97,35 +98,6 @@ function JobTracker() {
         return matchesStatus && matchesSearch;
     });
 
-    function renderApplications() {
-        return (
-            <div>
-                <div className="container-fluid">
-                    <div className="row mb-4">
-                        <div className="col-md-6">
-                            <h2>Job Applications</h2>
-                        </div>
-                        <div className="col-md-6">
-                            <div className="d-flex gap-2">
-                                <input type="text" className="form-control" placeholder="Search companies or roles..."
-                                    value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-                                <select className="form-select" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
-                                    <option value="all">All Status</option>
-                                    <option value="Applied">Applied</option>
-                                    <option value="Interviewing">Interviewing</option>
-                                    <option value="Offer">Offer</option>
-                                    <option value="Rejected">Rejected</option>
-                                    <option value="Withdrawn">Withdrawn</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <ApplicationTable filteredJobs={filteredJobs} setSelectedJob={setSelectedJob} getStatusBadge={getStatusBadge} formatDate={formatDate} />
-            </div>
-        );
-    }
-
     if (loading) return (
         <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }}>
             <div className="spinner-border text-primary" role="status">
@@ -158,8 +130,10 @@ function JobTracker() {
             {selectedJob ?
                 <JobDetail activeView={activeView} selectedJob={selectedJob} setSelectedJob={setSelectedJob} getStatusBadge={getStatusBadge} formatDate={formatDate} />
                 : (activeView === 'dashboard' ?
-                    <Dashboard statsData={statsData} recentJobs={recentJobs} setSelectedJob={setSelectedJob} setActiveView={setActiveView} formatDate = { formatDate } getStatusBadge = {getStatusBadge}/> 
-                    : renderApplications())
+                    <Dashboard statsData={statsData} recentJobs={recentJobs} setSelectedJob={setSelectedJob} setActiveView={setActiveView} formatDate={formatDate} getStatusBadge={getStatusBadge} />
+                    : <ApplicationsPage searchTerm={searchTerm} setSearchTerm={setSearchTerm} filterStatus={filterStatus}
+                        setFilterStatus={setFilterStatus} filteredJobs={filteredJobs} setSelectedJob={setSelectedJob} getStatusBadge={getStatusBadge} formatDate={formatDate}/>
+                )
             }
         </div>
     );
