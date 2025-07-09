@@ -5,6 +5,7 @@ import Dashboard from './components/Dashboard';
 import ApplicationsPage from './components/ApplicationsPage';
 
 function JobTracker() {
+    // Designed like this to minimize the number of API calls made to the server 
     const [jobApplications, setJobApplications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
