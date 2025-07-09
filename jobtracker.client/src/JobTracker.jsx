@@ -10,8 +10,6 @@ function JobTracker() {
     const [error, setError] = useState(null);
     const [selectedJob, setSelectedJob] = useState(null);
     const [activeView, setActiveView] = useState('dashboard');
-    const [filterStatus, setFilterStatus] = useState('all');
-    const [searchTerm, setSearchTerm] = useState('');
     const [recentJobs, setRecentJobs] = useState([]);
     const [statsData, setStatsData] = useState({});
     const [dashboardLoaded, setDashboardLoaded] = useState(false);
@@ -90,14 +88,6 @@ function JobTracker() {
         return statusMap[status] || 'bg-secondary';
     };
 
-    /* Filters jobs based on their status and or what was typed in the search box*/
-    const filteredJobs = jobApplications.filter(job => {
-        const matchesStatus = filterStatus === 'all' || job.status === filterStatus;
-        const matchesSearch = job.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            job.role.toLowerCase().includes(searchTerm.toLowerCase());
-        return matchesStatus && matchesSearch;
-    });
-
     if (loading) return (
         <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }}>
             <div className="spinner-border text-primary" role="status">
@@ -131,8 +121,7 @@ function JobTracker() {
                 <JobDetail activeView={activeView} selectedJob={selectedJob} setSelectedJob={setSelectedJob} getStatusBadge={getStatusBadge} formatDate={formatDate} />
                 : (activeView === 'dashboard' ?
                     <Dashboard statsData={statsData} recentJobs={recentJobs} setSelectedJob={setSelectedJob} setActiveView={setActiveView} formatDate={formatDate} getStatusBadge={getStatusBadge} />
-                    : <ApplicationsPage searchTerm={searchTerm} setSearchTerm={setSearchTerm} filterStatus={filterStatus}
-                        setFilterStatus={setFilterStatus} filteredJobs={filteredJobs} setSelectedJob={setSelectedJob} getStatusBadge={getStatusBadge} formatDate={formatDate}/>
+                    : <ApplicationsPage jobApplications={jobApplications} setSelectedJob={setSelectedJob} getStatusBadge={getStatusBadge} formatDate={formatDate}/>
                 )
             }
         </div>
