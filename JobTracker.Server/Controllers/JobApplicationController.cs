@@ -37,7 +37,7 @@ namespace JobTracker.Server.Controllers
             var totalApplications = staticJobApplications.Count;
             var pendingInterviews = staticJobApplications.Count(app => app.Status == "Interviewing");
             var totalInterviews = staticJobApplications.Sum(app => app.InterviewDates != null ? app.InterviewDates.Length : 0);
-            var offered = staticJobApplications.Count(app => app.Status == "Offered");
+            var offered = staticJobApplications.Count(app => app.Status == "Offer");
 
             return (Ok(new
             {
