@@ -120,7 +120,14 @@ function JobTracker() {
         <div className="min-vh-100 bg-light">
             <Navigation activeView={activeView} onViewChange={setActiveView} />
             {selectedJob ?
-                <JobDetail activeView={activeView} selectedJob={selectedJob} setSelectedJob={setSelectedJob} getStatusBadge={getStatusBadge} formatDate={formatDate} />
+                <JobDetail
+                    activeView={activeView}
+                    selectedJob={selectedJob}
+                    setSelectedJob={setSelectedJob}
+                    getStatusBadge={getStatusBadge}
+                    formatDate={formatDate}
+                    onJobUpdate={fetchAllApplications} 
+                />
                 : (activeView === 'dashboard' ?
                     <Dashboard statsData={statsData} recentJobs={recentJobs} setSelectedJob={setSelectedJob} setActiveView={setActiveView} formatDate={formatDate} getStatusBadge={getStatusBadge} />
                     : <ApplicationsPage jobApplications={jobApplications} setSelectedJob={setSelectedJob} getStatusBadge={getStatusBadge} formatDate={formatDate}/>
