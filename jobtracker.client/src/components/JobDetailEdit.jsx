@@ -43,7 +43,7 @@ function JobDetailEdit({ editData, onSave, onCancel }) {
         }
 
         try {
-            const response = await fetch(`API HERE`, {
+            const response = await fetch(`api/JobApplication/${formData.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

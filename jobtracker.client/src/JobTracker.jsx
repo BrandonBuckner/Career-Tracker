@@ -71,6 +71,13 @@ function JobTracker() {
         }
     };
 
+    const handleJobUpdate = async (updatedData) => {
+        console.log("I ran!", updatedData);
+        setSelectedJob(updatedData);
+        setDashboardLoaded(false);
+        setApplicationsLoaded(false);
+    };
+
     // Formats date to ensure it uses Date object or returns 'N/A' if no date is provided
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
@@ -126,7 +133,7 @@ function JobTracker() {
                     setSelectedJob={setSelectedJob}
                     getStatusBadge={getStatusBadge}
                     formatDate={formatDate}
-                    onJobUpdate={fetchAllApplications} 
+                    onJobUpdate={handleJobUpdate} 
                 />
                 : (activeView === 'dashboard' ?
                     <Dashboard statsData={statsData} recentJobs={recentJobs} setSelectedJob={setSelectedJob} setActiveView={setActiveView} formatDate={formatDate} getStatusBadge={getStatusBadge} />

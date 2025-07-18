@@ -91,6 +91,25 @@ namespace JobTracker.Server.Controllers
             return Ok(recentApplications);
         }
 
+        [HttpPut("{id}")]
+        public ActionResult<JobApplication> UpdateApplication(int id, [FromBody] JobApplication updatedApplication)
+        {
+            if(updatedApplication == null)
+                return BadRequest("Updated application cannot be null.");
+            if(id != updatedApplication.Id)
+                return BadRequest("ID in URL does not match ID in body.");
+
+            var existingIndex = staticJobApplications.FindIndex(app => app.Id == id);
+
+            if (existingIndex == -1)
+                return NotFound();
+
+            // Update the existing application with the new values
+            staticJobApplications[existingIndex] = updatedApplication;
+
+            return Ok(updatedApplication);
+        }
+
         //TODO: Update this to be a database instead of static data 
         private static readonly List<JobApplication> staticJobApplications = new List<JobApplication>
         {
