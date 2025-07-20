@@ -30,6 +30,11 @@ function JobDetailEdit({ editData, onSave, onCancel }) {
             }
         });
 
+        // Validate application date 
+        if (formData.applicationDate && new Date(formData.applicationDate) > new Date()) {
+            newErrors.applicationDate = 'Application date cannot be in the future';
+        }
+
         return newErrors;
     };
 

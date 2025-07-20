@@ -72,16 +72,29 @@ function JobTracker() {
     };
 
     const handleJobUpdate = async (updatedData) => {
-        console.log("I ran!", updatedData);
         setSelectedJob(updatedData);
         setDashboardLoaded(false);
         setApplicationsLoaded(false);
     };
 
-    // Formats date to ensure it uses Date object or returns 'N/A' if no date is provided
+    // Formats date and fixes the timezone issue by converting it to local time
+    // TODO: Possibly refactor format date (may need to convert to string)
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
-        return new Date(dateString).toLocaleDateString();
+
+        try {
+            // Get date only
+            const dateOnly = dateString.split('T')[0];
+
+            // Set new date object in local time 
+            const [year, month, day] = dateOnly.split('-');
+            const date = new Date(year, month - 1, day);
+
+            return date.toLocaleDateString();
+        } catch (error) {
+            console.error('Date formatting error:', error, dateString);
+            return 'Invalid Date';
+        }
     };
 
     // Status map to determine the badge color based on job status

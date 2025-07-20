@@ -98,6 +98,8 @@ namespace JobTracker.Server.Controllers
                 return BadRequest("Updated application cannot be null.");
             if(id != updatedApplication.Id)
                 return BadRequest("ID in URL does not match ID in body.");
+            if(updatedApplication.ApplicationDate > DateTime.Now)
+                return BadRequest("Application date cannot be in the future.");
 
             var existingIndex = staticJobApplications.FindIndex(app => app.Id == id);
 
