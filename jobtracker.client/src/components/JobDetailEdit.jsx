@@ -30,9 +30,15 @@ function JobDetailEdit({ editData, onSave, onCancel }) {
             }
         });
 
-        // Validate application date 
-        if (formData.applicationDate && new Date(formData.applicationDate) > new Date()) {
+        const currentTim = new Date();
+        // Validate application date & last heard from date 
+        if (formData.applicationDate && new Date(formData.applicationDate) > currentTim) {
             newErrors.applicationDate = 'Application date cannot be in the future';
+        }
+        if (formData.lastHeardDate && new Date(formData.lastHeardDate) > currentTim) {
+            newErrors.lastHeardDate = 'Last heard from date cannot be in the future';
+        } else if (formData.lastHeardDate < formData.applicationDate) {
+            newErrors.lastHeardDate = 'Last heard from date cannot be before an application was submitted';
         }
 
         return newErrors;
@@ -160,14 +166,16 @@ function JobDetailEdit({ editData, onSave, onCancel }) {
                                 />
                                 {errors.applicationDate && <div className="invalid-feedback">{errors.applicationDate}</div>}
                             </div>
+
                             <div className="col-md-6">
-                                <label className="form-label">Last Contact Date</label>
+                                <label className="form-label">Last Contact Date <span className="text-danger">*</span></label>
                                 <input
                                     type="date"
-                                    className="form-control"
+                                    className={`form-control ${errors.lastHeardDate ? 'is-invalid' : ''}`}
                                     value={formData.lastHeardDate ? formData.lastHeardDate.split('T')[0] : ''}
                                     onChange={(e) => handleFieldChange('lastHeardDate', e.target.value)}
                                 />
+                                {errors.lastHeardDate && <div className="invalid-feedback">{errors.lastHeardDate}</div>}
                             </div>
                         </div>
 

@@ -138,7 +138,7 @@ function JobTracker() {
     // TODO: BUG allows user to navigate to a different application page while still having job details pulled up 
     return (
         <div className="min-vh-100 bg-light">
-            <Navigation activeView={activeView} onViewChange={setActiveView} />
+            <Navigation activeView={activeView} onViewChange={setActiveView} selectedJob={selectedJob} />
             {selectedJob ?
                 <JobDetail
                     activeView={activeView}
