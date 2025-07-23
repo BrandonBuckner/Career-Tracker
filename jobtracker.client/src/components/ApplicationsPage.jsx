@@ -28,7 +28,7 @@ function ApplicationsPage({ jobApplications, setSelectedJob, getStatusBadge, for
                                 <option value="all">All Status</option>
                                 <option value="Applied">Applied</option>
                                 <option value="Interviewing">Interviewing</option>
-                                <option value="Offer">Offer</option>
+                                <option value="Offered">Offered</option>
                                 <option value="Rejected">Rejected</option>
                                 <option value="Withdrawn">Withdrawn</option>
                             </select>

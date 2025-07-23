@@ -102,7 +102,7 @@ function JobTracker() {
         const statusMap = {
             'Applied': 'bg-primary',
             'Interviewing': 'bg-warning text-dark',
-            'Offer': 'bg-success',
+            'Offered': 'bg-success',
             'Rejected': 'bg-danger',
             'Withdrawn': 'bg-secondary'
         };

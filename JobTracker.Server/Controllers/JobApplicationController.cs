@@ -37,7 +37,7 @@ namespace JobTracker.Server.Controllers
             var totalApplications = staticJobApplications.Count;
             var pendingInterviews = staticJobApplications.Count(app => app.Status == "Interviewing");
             var totalInterviews = staticJobApplications.Sum(app => app.InterviewDates != null ? app.InterviewDates.Length : 0);
-            var offered = staticJobApplications.Count(app => app.Status == "Offer");
+            var offered = staticJobApplications.Count(app => app.Status == "Offered");
 
             return (Ok(new
             {
@@ -215,7 +215,7 @@ namespace JobTracker.Server.Controllers
                 LastHeardDate = DateTime.Now.AddDays(-5),
                 JobLink = "https://discord.com/jobs/platform-engineer-infrastructure"
             },
-            new JobApplication(9, "Stripe", "API Developer", "Offer", DateTime.Now.AddDays(-22))
+            new JobApplication(9, "Stripe", "API Developer", "Offered", DateTime.Now.AddDays(-22))
             {
                 Location = "Remote (US)",
                 SalaryEstimate = "$155k-185k",
