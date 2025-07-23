@@ -1,5 +1,18 @@
+import React, { useState } from 'react';
 import ApplicationTable from './ApplicationTable';
-function ApplicationsPage({searchTerm, setSearchTerm, filterStatus, setFilterStatus, filteredJobs, setSelectedJob, getStatusBadge, formatDate }) {
+
+function ApplicationsPage({ jobApplications, setSelectedJob, getStatusBadge, formatDate }) {
+    const [filterStatus, setFilterStatus] = useState('all');
+    const [searchTerm, setSearchTerm] = useState('');
+
+    /* Filters jobs based on their status and or what was typed in the search box*/
+    const filteredJobs = jobApplications.filter(job => {
+        const matchesStatus = filterStatus === 'all' || job.status === filterStatus;
+        const matchesSearch = job.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            job.role.toLowerCase().includes(searchTerm.toLowerCase());
+        return matchesStatus && matchesSearch;
+    });
+
     return (
         <div>
             <div className="container-fluid">
@@ -15,7 +28,7 @@ function ApplicationsPage({searchTerm, setSearchTerm, filterStatus, setFilterSta
                                 <option value="all">All Status</option>
                                 <option value="Applied">Applied</option>
                                 <option value="Interviewing">Interviewing</option>
-                                <option value="Offer">Offer</option>
+                                <option value="Offered">Offered</option>
                                 <option value="Rejected">Rejected</option>
                                 <option value="Withdrawn">Withdrawn</option>
                             </select>

@@ -5,13 +5,12 @@ import Dashboard from './components/Dashboard';
 import ApplicationsPage from './components/ApplicationsPage';
 
 function JobTracker() {
+    // Designed like this to minimize the number of API calls made to the server 
     const [jobApplications, setJobApplications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [selectedJob, setSelectedJob] = useState(null);
     const [activeView, setActiveView] = useState('dashboard');
-    const [filterStatus, setFilterStatus] = useState('all');
-    const [searchTerm, setSearchTerm] = useState('');
     const [recentJobs, setRecentJobs] = useState([]);
     const [statsData, setStatsData] = useState({});
     const [dashboardLoaded, setDashboardLoaded] = useState(false);
@@ -72,10 +71,30 @@ function JobTracker() {
         }
     };
 
-    // Formats date to ensure it uses Date object or returns 'N/A' if no date is provided
+    const handleJobUpdate = async (updatedData) => {
+        setSelectedJob(updatedData);
+        setDashboardLoaded(false);
+        setApplicationsLoaded(false);
+    };
+
+    // Formats date and fixes the timezone issue by converting it to local time
+    // TODO: Possibly refactor format date (may need to convert to string)
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
-        return new Date(dateString).toLocaleDateString();
+
+        try {
+            // Get date only
+            const dateOnly = dateString.split('T')[0];
+
+            // Set new date object in local time 
+            const [year, month, day] = dateOnly.split('-');
+            const date = new Date(year, month - 1, day);
+
+            return date.toLocaleDateString();
+        } catch (error) {
+            console.error('Date formatting error:', error, dateString);
+            return 'Invalid Date';
+        }
     };
 
     // Status map to determine the badge color based on job status
@@ -83,20 +102,12 @@ function JobTracker() {
         const statusMap = {
             'Applied': 'bg-primary',
             'Interviewing': 'bg-warning text-dark',
-            'Offer': 'bg-success',
+            'Offered': 'bg-success',
             'Rejected': 'bg-danger',
             'Withdrawn': 'bg-secondary'
         };
         return statusMap[status] || 'bg-secondary';
     };
-
-    /* Filters jobs based on their status and or what was typed in the search box*/
-    const filteredJobs = jobApplications.filter(job => {
-        const matchesStatus = filterStatus === 'all' || job.status === filterStatus;
-        const matchesSearch = job.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            job.role.toLowerCase().includes(searchTerm.toLowerCase());
-        return matchesStatus && matchesSearch;
-    });
 
     if (loading) return (
         <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '400px' }}>
@@ -124,15 +135,22 @@ function JobTracker() {
     } 
 
     // Decides what to render on the UI side
+    // TODO: BUG allows user to navigate to a different application page while still having job details pulled up 
     return (
         <div className="min-vh-100 bg-light">
-            <Navigation activeView={activeView} onViewChange={setActiveView} />
+            <Navigation activeView={activeView} onViewChange={setActiveView} selectedJob={selectedJob} />
             {selectedJob ?
-                <JobDetail activeView={activeView} selectedJob={selectedJob} setSelectedJob={setSelectedJob} getStatusBadge={getStatusBadge} formatDate={formatDate} />
+                <JobDetail
+                    activeView={activeView}
+                    selectedJob={selectedJob}
+                    setSelectedJob={setSelectedJob}
+                    getStatusBadge={getStatusBadge}
+                    formatDate={formatDate}
+                    onJobUpdate={handleJobUpdate} 
+                />
                 : (activeView === 'dashboard' ?
                     <Dashboard statsData={statsData} recentJobs={recentJobs} setSelectedJob={setSelectedJob} setActiveView={setActiveView} formatDate={formatDate} getStatusBadge={getStatusBadge} />
-                    : <ApplicationsPage searchTerm={searchTerm} setSearchTerm={setSearchTerm} filterStatus={filterStatus}
-                        setFilterStatus={setFilterStatus} filteredJobs={filteredJobs} setSelectedJob={setSelectedJob} getStatusBadge={getStatusBadge} formatDate={formatDate}/>
+                    : <ApplicationsPage jobApplications={jobApplications} setSelectedJob={setSelectedJob} getStatusBadge={getStatusBadge} formatDate={formatDate}/>
                 )
             }
         </div>

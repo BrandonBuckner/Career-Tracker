@@ -91,6 +91,31 @@ namespace JobTracker.Server.Controllers
             return Ok(recentApplications);
         }
 
+        [HttpPut("{id}")]
+        public ActionResult<JobApplication> UpdateApplication(int id, [FromBody] JobApplication updatedApplication)
+        {
+            if(updatedApplication == null)
+                return BadRequest("Updated application cannot be null.");
+            if(id != updatedApplication.Id)
+                return BadRequest("ID in URL does not match ID in body.");
+            if(updatedApplication.ApplicationDate > DateTime.Now)
+                return BadRequest("Application date cannot be in the future.");
+            if (updatedApplication.LastHeardDate > DateTime.Now)
+                return BadRequest("Last heard date cannot be in the future.");
+            if(updatedApplication.LastHeardDate < updatedApplication.ApplicationDate)
+                return BadRequest("Last heard date cannot be before application date.");
+
+            var existingIndex = staticJobApplications.FindIndex(app => app.Id == id);
+
+            if (existingIndex == -1)
+                return NotFound();
+
+            // Update the existing application with the new values
+            staticJobApplications[existingIndex] = updatedApplication;
+
+            return Ok(updatedApplication);
+        }
+
         //TODO: Update this to be a database instead of static data 
         private static readonly List<JobApplication> staticJobApplications = new List<JobApplication>
         {
@@ -190,7 +215,7 @@ namespace JobTracker.Server.Controllers
                 LastHeardDate = DateTime.Now.AddDays(-5),
                 JobLink = "https://discord.com/jobs/platform-engineer-infrastructure"
             },
-            new JobApplication(9, "Stripe", "API Developer", "Offer", DateTime.Now.AddDays(-22))
+            new JobApplication(9, "Stripe", "API Developer", "Offered", DateTime.Now.AddDays(-22))
             {
                 Location = "Remote (US)",
                 SalaryEstimate = "$155k-185k",
