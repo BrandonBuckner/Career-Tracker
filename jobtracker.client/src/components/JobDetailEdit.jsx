@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import InterviewDatesEdit from './InterviewDatesEdit';
 
-function JobDetailEdit({ editData, onSave, onCancel }) {
+function JobDetailEdit({ editData, onSave, onCancel, formatDate }) {
     const [formData, setFormData] = useState(editData);
     const [errors, setErrors] = useState({});
 
@@ -109,7 +110,7 @@ function JobDetailEdit({ editData, onSave, onCancel }) {
                                 >
                                     <option value="">Select Status</option>
                                     <option value="Applied">Applied</option>
-                                    <option value="Interview">Interview</option>
+                                    <option value="Interviewing">Interviewing</option>
                                     <option value="Offered">Offered</option>
                                     <option value="Rejected">Rejected</option>
                                     <option value="Withdrawn">Withdrawn</option>
@@ -246,7 +247,11 @@ function JobDetailEdit({ editData, onSave, onCancel }) {
                         <h6 className="mb-0">Interview Timeline</h6>
                     </div>
                     <div className="card-body">
-                        <p className="text-muted">Interview date editing coming soon...</p>
+                        <InterviewDatesEdit
+                            interviewDates={formData.interviewDates || []}
+                            onChange={(dates) => handleFieldChange('interviewDates', dates)}
+                            formatDate={formatDate}
+                        />
                     </div>
                 </div>
 

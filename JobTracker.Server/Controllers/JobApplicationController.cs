@@ -100,6 +100,10 @@ namespace JobTracker.Server.Controllers
                 return BadRequest("ID in URL does not match ID in body.");
             if(updatedApplication.ApplicationDate > DateTime.Now)
                 return BadRequest("Application date cannot be in the future.");
+            if (updatedApplication.LastHeardDate > DateTime.Now)
+                return BadRequest("Last heard date cannot be in the future.");
+            if(updatedApplication.LastHeardDate < updatedApplication.ApplicationDate)
+                return BadRequest("Last heard date cannot be before application date.");
 
             var existingIndex = staticJobApplications.FindIndex(app => app.Id == id);
 

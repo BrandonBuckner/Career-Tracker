@@ -54,6 +54,7 @@ function JobDetail({ activeView, selectedJob, setSelectedJob, getStatusBadge, fo
                     editData={selectedJob}
                     onSave={handleSave}
                     onCancel={cancelEdit}
+                    formatDate={formatDate}
                 />
             )}
         </div>
