@@ -1,7 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using JobTracker.Server.Models;
-using System.Diagnostics.Eventing.Reader;
+using JobTracker.Server.Interfaces;
 
 namespace JobTracker.Server.Controllers
 {
@@ -9,229 +8,127 @@ namespace JobTracker.Server.Controllers
     [ApiController]
     public class JobApplicationController : ControllerBase
     {
-        [HttpGet]
-        public ActionResult<IEnumerable<JobApplication>> GetAllApplications()
-        {
-            var sortedApplications = staticJobApplications
-                .OrderByDescending(app => app.ApplicationDate)
-                .ThenBy(app => app.CompanyName)
-                .ToList();
+        private readonly JobApplicationDBInterface _repository;
 
-            return Ok(sortedApplications);
+        // Constructor - ASP.NET will inject the repository
+        public JobApplicationController(JobApplicationDBInterface repository)
+        {
+            _repository = repository;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<JobApplication>>> GetAllApplications()
+        {
+            var applications = await _repository.GetAllAsync();
+            return Ok(applications);
         }
 
         [HttpGet("{id}")]
-        public ActionResult<JobApplication> GetApplicationById(int id)
+        public async Task<ActionResult<JobApplication>> GetApplicationById(int id)
         {
-            var application = staticJobApplications.FirstOrDefault(app => app.Id == id);
+            var application = await _repository.GetByIdAsync(id);
             if (application == null)
-            {
                 return NotFound();
-            }
+
             return Ok(application);
         }
 
         [HttpGet("stats")]
-        public ActionResult<object> GetStats()
+        public async Task<ActionResult<object>> GetStats()
         {
-            var totalApplications = staticJobApplications.Count;
-            var pendingInterviews = staticJobApplications.Count(app => app.Status == "Interviewing");
-            var totalInterviews = staticJobApplications.Sum(app => app.InterviewDates != null ? app.InterviewDates.Length : 0);
-            var offered = staticJobApplications.Count(app => app.Status == "Offered");
-
-            return (Ok(new
+            var stats = await _repository.GetStatisticsAsync();
+            return Ok(new
             {
-                TotalApplications = totalApplications,
-                PendingInterviews = pendingInterviews,
-                TotalInterviews = totalInterviews,
-                TotalOffers = offered
-            }));
-
+                TotalApplications = stats.total,
+                PendingInterviews = stats.pendingInterviews,
+                TotalInterviews = stats.totalInterviews,
+                TotalOffers = stats.offers
+            });
         }
 
         [HttpGet("by-status/{status}")]
-        public ActionResult<IEnumerable<JobApplication>> GetApplicationsByStatus(string status)
+        public async Task<ActionResult<IEnumerable<JobApplication>>> GetApplicationsByStatus(string status)
         {
-            var applications = staticJobApplications.Where(app => app.Status.Equals(status, StringComparison.OrdinalIgnoreCase)).ToList();
+            var applications = await _repository.GetByStatusAsync(status);
             if (!applications.Any())
-            {
                 return NotFound();
-            }
+
             return Ok(applications);
         }
 
         [HttpGet("search")]
-        public ActionResult<IEnumerable<JobApplication>> SearchApplications([FromQuery] string term)
+        public async Task<ActionResult<IEnumerable<JobApplication>>> SearchApplications([FromQuery] string term)
         {
-            if(term == null)
-            {
-                return BadRequest("Search term cannot be null.");
-            }
-            var applications = staticJobApplications
-                .Where(app => app.CompanyName.Contains(term, StringComparison.OrdinalIgnoreCase) ||
-                              app.Role.Contains(term, StringComparison.OrdinalIgnoreCase))
-                .ToList();
+            if (string.IsNullOrWhiteSpace(term))
+                return BadRequest("Search term cannot be null or empty.");
+
+            var applications = await _repository.SearchAsync(term);
             return Ok(applications);
         }
 
         [HttpGet("recent")]
-        public ActionResult<IEnumerable<JobApplication>> GetRecentApplications([FromQuery] int limit = 5)
+        public async Task<ActionResult<IEnumerable<JobApplication>>> GetRecentApplications([FromQuery] int limit = 5)
         {
-            if(limit <= 0) { 
+            if (limit <= 0)
+            {
                 return BadRequest("Limit must be a positive integer.");
             }
-            if(limit > 20) {
+            if (limit > 20)
+            {
                 return BadRequest("Limit cannot exceed 20.");
             }
 
-            var recentApplications = staticJobApplications
-                .OrderByDescending(app => app.ApplicationDate)
-                .Take(limit)
-                .ToList();
+            var recentApplications = await _repository.GetRecentAsync(limit);
             return Ok(recentApplications);
         }
 
-        [HttpPut("{id}")]
-        public ActionResult<JobApplication> UpdateApplication(int id, [FromBody] JobApplication updatedApplication)
+        [HttpPost]
+        public async Task<ActionResult<JobApplication>> CreateApplication([FromBody] JobApplication application)
         {
-            if(updatedApplication == null)
+            // Validation
+            if (string.IsNullOrWhiteSpace(application.CompanyName))
+                return BadRequest("Company name is required.");
+            if (string.IsNullOrWhiteSpace(application.Role))
+                return BadRequest("Role is required.");
+            if (string.IsNullOrWhiteSpace(application.Status))
+                return BadRequest("Status is required.");
+            if (application.ApplicationDate > DateTime.Now)
+                return BadRequest("Application date cannot be in the future.");
+
+            var created = await _repository.CreateAsync(application);
+            return CreatedAtAction(nameof(GetApplicationById), new { id = created.Id }, created);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult<JobApplication>> UpdateApplication(int id, [FromBody] JobApplication updatedApplication)
+        {
+            if (updatedApplication == null)
                 return BadRequest("Updated application cannot be null.");
-            if(id != updatedApplication.Id)
+            if (id != updatedApplication.Id)
                 return BadRequest("ID in URL does not match ID in body.");
-            if(updatedApplication.ApplicationDate > DateTime.Now)
+            if (updatedApplication.ApplicationDate > DateTime.Now)
                 return BadRequest("Application date cannot be in the future.");
             if (updatedApplication.LastHeardDate > DateTime.Now)
                 return BadRequest("Last heard date cannot be in the future.");
-            if(updatedApplication.LastHeardDate < updatedApplication.ApplicationDate)
+            if (updatedApplication.LastHeardDate < updatedApplication.ApplicationDate)
                 return BadRequest("Last heard date cannot be before application date.");
 
-            var existingIndex = staticJobApplications.FindIndex(app => app.Id == id);
-
-            if (existingIndex == -1)
+            var result = await _repository.UpdateAsync(id, updatedApplication);
+            if (result == null)
                 return NotFound();
 
-            // Update the existing application with the new values
-            staticJobApplications[existingIndex] = updatedApplication;
-
-            return Ok(updatedApplication);
+            return Ok(result);
         }
 
-        //TODO: Update this to be a database instead of static data 
-        private static readonly List<JobApplication> staticJobApplications = new List<JobApplication>
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> DeleteApplication(int id)
         {
-            new JobApplication(1, "Microsoft", "Software Engineer", "Applied", DateTime.Now.AddDays(-5))
-            {
-                Location = "Seattle, WA",
-                SalaryEstimate = "$120k-150k",
-                Notes = "Applied through LinkedIn",
-            },
-            new JobApplication(2, "Google", "Frontend Developer", "Interviewing", DateTime.Now.AddDays(-3))
-            {
-                Location = "Mountain View, CA",
-                SalaryEstimate = "$130k-160k",
-                InterviewDates = new DateTime[] { DateTime.Now.AddDays(2) },
-            },
-            new JobApplication(3, "Meta", "React Developer", "Interviewing", DateTime.Now.AddDays(-12))
-            {
-                Location = "Menlo Park, CA",
-                SalaryEstimate = "$145k-175k",
-                Notes = "Two technical rounds completed. Waiting for final decision. Team seemed very collaborative.",
-                JobType = "Full-time",
-                Referral = false,
-                RoleDescription = "Build user-facing features for Facebook and Instagram using React, GraphQL, and modern web technologies",
-                InterviewDates = new DateTime[] {
-                    DateTime.Now.AddDays(-8),
-                    DateTime.Now.AddDays(-5)
-                },
-                LastHeardDate = DateTime.Now.AddDays(-3),
-                JobLink = "https://careers.meta.com/jobs/react-developer-2024"
-            },
+            var deleted = await _repository.DeleteAsync(id);
+            if (!deleted)
+                return NotFound();
 
-            new JobApplication(4, "Spotify", "Full Stack Engineer", "Applied", DateTime.Now.AddDays(-2))
-            {
-                Location = "Remote",
-                SalaryEstimate = "$110k-140k",
-                Notes = "Applied through their careers page. Very interested in music streaming technology.",
-                JobType = "Full-time",
-                Referral = true,
-                RoleDescription = "Work on music recommendation algorithms and user experience features using Python, React, and machine learning",
-                InterviewDates = null,
-                LastHeardDate = null,
-                JobLink = "https://lifeatspotify.com/jobs/full-stack-engineer"
-            },
+            return NoContent();
+        }
 
-            new JobApplication(5, "Tesla", "Software Engineer", "Withdrawn", DateTime.Now.AddDays(-25))
-            {
-                Location = "Austin, TX",
-                SalaryEstimate = "$120k-150k",
-                Notes = "Withdrew application after learning about mandatory relocation. Not ready to move to Texas.",
-                JobType = "Full-time",
-                Referral = false,
-                RoleDescription = "Develop software for Tesla's autopilot and vehicle control systems using C++ and Python",
-                InterviewDates = new DateTime[] { DateTime.Now.AddDays(-20) },
-                LastHeardDate = DateTime.Now.AddDays(-18),
-                JobLink = "https://tesla.com/careers/software-engineer-autopilot"
-            },
-            new JobApplication(6, "Airbnb", "Frontend Engineer", "Interviewing", DateTime.Now.AddDays(-7))
-            {
-                Location = "San Francisco, CA",
-                SalaryEstimate = "$135k-165k",
-                Notes = "Recruiter reached out on LinkedIn. Interview scheduled for next week. Need to prepare system design questions.",
-                JobType = "Full-time",
-                Referral = false,
-                RoleDescription = "Build and maintain host and guest-facing web applications using React, TypeScript, and modern CSS frameworks",
-                InterviewDates = new DateTime[] {
-                    DateTime.Now.AddDays(3),
-                    DateTime.Now.AddDays(7)
-                },
-                LastHeardDate = DateTime.Now.AddDays(-2),
-                JobLink = "https://careers.airbnb.com/positions/frontend-engineer-2024"
-            },
-            new JobApplication(7, "Shopify", "Backend Developer", "Applied", DateTime.Now.AddDays(-14))
-            {
-                Location = "Toronto, ON",
-                SalaryEstimate = "$95k-120k CAD",
-                Notes = "Canadian company, so salary is in CAD. Applied through university career fair connection.",
-                JobType = "Contract",
-                Referral = true,
-                RoleDescription = "Build scalable e-commerce APIs and microservices using Ruby on Rails, GraphQL, and cloud technologies",
-                InterviewDates = null,
-                LastHeardDate = DateTime.Now.AddDays(-10),
-                JobLink = "https://shopify.com/careers/backend-developer-ruby"
-            }, 
-            new JobApplication(8, "Discord", "Platform Engineer", "Rejected", DateTime.Now.AddDays(-18))
-            {
-                Location = "San Francisco, CA",
-                SalaryEstimate = "$140k-170k",
-                Notes = "Made it through 3 rounds of interviews but didn't get selected. Feedback was positive but they chose someone with more distributed systems experience. Will apply again in 6 months.",
-                JobType = "Full-time",
-                Referral = false,
-                RoleDescription = "Build and scale Discord's real-time messaging infrastructure serving millions of concurrent users using Go, Redis, and Kubernetes",
-                InterviewDates = new DateTime[] {
-                    DateTime.Now.AddDays(-15),
-                    DateTime.Now.AddDays(-12),
-                    DateTime.Now.AddDays(-9)
-                },
-                LastHeardDate = DateTime.Now.AddDays(-5),
-                JobLink = "https://discord.com/jobs/platform-engineer-infrastructure"
-            },
-            new JobApplication(9, "Stripe", "API Developer", "Offered", DateTime.Now.AddDays(-22))
-            {
-                Location = "Remote (US)",
-                SalaryEstimate = "$155k-185k",
-                Notes = "Received offer! Need to respond by end of week. Great compensation package includes equity and signing bonus. Team culture seems excellent.",
-                JobType = "Full-time",
-                Referral = true,
-                RoleDescription = "Design and implement payment APIs and financial infrastructure tools used by millions of businesses worldwide using Ruby, TypeScript, and PostgreSQL",
-                InterviewDates = new DateTime[] {
-                    DateTime.Now.AddDays(-16),
-                    DateTime.Now.AddDays(-13),
-                    DateTime.Now.AddDays(-10),
-                    DateTime.Now.AddDays(-8)
-                },
-                LastHeardDate = DateTime.Now.AddDays(-1),
-                JobLink = "https://stripe.com/jobs/api-developer-platform"
-            }
-        };
     }
 }
