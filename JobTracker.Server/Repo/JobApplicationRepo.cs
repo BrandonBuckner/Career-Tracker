@@ -14,6 +14,24 @@ namespace JobTracker.Server.Repo
             _context = context;
         }
 
+        // Private Method to convert date times to UTC for EF Core
+        private void NormalizeDatesToUtc(JobApplication application)
+        {
+            application.ApplicationDate = DateTime.SpecifyKind(application.ApplicationDate, DateTimeKind.Utc);
+
+            if (application.LastHeardDate.HasValue)
+            {
+                application.LastHeardDate = DateTime.SpecifyKind(application.LastHeardDate.Value, DateTimeKind.Utc);
+            }
+
+            if (application.InterviewDates != null)
+            {
+                application.InterviewDates = application.InterviewDates
+                    .Select(d => DateTime.SpecifyKind(d, DateTimeKind.Utc))
+                    .ToArray();
+            }
+        }
+
         public async Task<IEnumerable<JobApplication>> GetAllAsync()
         {
             return await _context.JobApplications
@@ -57,6 +75,7 @@ namespace JobTracker.Server.Repo
         // TODO: Update to check the DB for most recent ID of job application and increase it by one 
         public async Task<JobApplication> CreateAsync(JobApplication application)
         {
+            NormalizeDatesToUtc(application);
             _context.JobApplications.Add(application);
             await _context.SaveChangesAsync();
             return application;
@@ -64,26 +83,21 @@ namespace JobTracker.Server.Repo
 
         public async Task<JobApplication?> UpdateAsync(int id, JobApplication application)
         {
-            var existing = await GetByIdAsync(id);
-            if (existing == null)
-                return null;
+            application.Id = id;
+            NormalizeDatesToUtc(application);
+            _context.JobApplications.Update(application);
 
-            existing.CompanyName = application.CompanyName;
-            existing.Role = application.Role;
-            existing.Status = application.Status;
-            existing.ApplicationDate = application.ApplicationDate;
-            existing.Location = application.Location;
-            existing.SalaryEstimate = application.SalaryEstimate;
-            existing.Notes = application.Notes;
-            existing.JobType = application.JobType;
-            existing.Referral = application.Referral;
-            existing.RoleDescription = application.RoleDescription;
-            existing.InterviewDates = application.InterviewDates;
-            existing.LastHeardDate = application.LastHeardDate;
-            existing.JobLink = application.JobLink;
-
-            await _context.SaveChangesAsync();
-            return existing;
+            try
+            {
+                await _context.SaveChangesAsync();
+                return application;
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!await _context.JobApplications.AnyAsync(e => e.Id == id))
+                    return null;
+                throw;
+            }
         }
 
         public async Task<bool> DeleteAsync(int id)

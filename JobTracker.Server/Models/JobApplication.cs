@@ -2,7 +2,7 @@
 {
     public class JobApplication
     {
-        public int Id { get; init; }
+        public int Id { get; set; }
         public string CompanyName { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
         public string? RoleDescription { get; set; }

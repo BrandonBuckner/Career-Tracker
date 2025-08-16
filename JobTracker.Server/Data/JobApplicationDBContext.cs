@@ -48,8 +48,14 @@ namespace JobTracker.Server.Data
                 entity.Property(e => e.JobType)
                     .HasMaxLength(50);
 
+                entity.Property(e => e.ApplicationDate)
+                    .HasColumnType("timestamp with time zone");
+
+                entity.Property(e => e.LastHeardDate)
+                    .HasColumnType("timestamp with time zone");
+
                 entity.Property(e => e.InterviewDates)
-                    .HasColumnType("timestamp[]");
+                    .HasColumnType("timestamp with time zone[]");
 
                 // This is likely a commond indexed spot which can improve performance 
                 // TODO: Comeback to this and verify it does speed up the query performance/is worth it 
