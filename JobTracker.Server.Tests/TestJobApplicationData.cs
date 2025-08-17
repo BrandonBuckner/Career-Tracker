@@ -13,7 +13,7 @@ namespace JobTracker.Server.Tests
         {
             return new List<JobApplication>
             {
-                new JobApplication(12, "Tesla", "Software Engineer", "Withdrawn", DateTime.Now.AddDays(-25))
+                new JobApplication(1, "Tesla", "Software Engineer", "Withdrawn", new DateTime(2025, 3, 2))
             {
                 Location = "Austin, TX",
                 SalaryEstimate = "$120k-150k",
@@ -21,11 +21,11 @@ namespace JobTracker.Server.Tests
                 JobType = "Full-time",
                 Referral = false,
                 RoleDescription = "Develop software for Tesla's autopilot and vehicle control systems using C++ and Python",
-                InterviewDates = new DateTime[] { DateTime.Now.AddDays(-20) },
-                LastHeardDate = DateTime.Now.AddDays(-18),
+                InterviewDates = new DateTime[] { new DateTime(2025, 4, 1) },
+                LastHeardDate = new DateTime(2025, 4, 1),
                 JobLink = "https://tesla.com/careers/software-engineer-autopilot"
             },
-            new JobApplication(13, "Airbnb", "Frontend Engineer", "Interviewing", DateTime.Now.AddDays(-7))
+            new JobApplication(2, "Airbnb", "Frontend Engineer", "Interviewing", DateTime.Now.AddDays(-7))
             {
                 Location = "San Francisco, CA",
                 SalaryEstimate = "$135k-165k",
@@ -40,7 +40,7 @@ namespace JobTracker.Server.Tests
                 LastHeardDate = DateTime.Now.AddDays(-2),
                 JobLink = "https://careers.airbnb.com/positions/frontend-engineer-2024"
             },
-            new JobApplication(14, "Shopify", "Backend Developer", "Applied", DateTime.Now.AddDays(-14))
+            new JobApplication(3, "Shopify", "Backend Developer", "Applied", DateTime.Now.AddDays(-14))
             {
                 Location = "Toronto, ON",
                 SalaryEstimate = "$95k-120k CAD",
@@ -52,7 +52,7 @@ namespace JobTracker.Server.Tests
                 LastHeardDate = DateTime.Now.AddDays(-10),
                 JobLink = "https://shopify.com/careers/backend-developer-ruby"
             },
-            new JobApplication(15, "Discord", "Platform Engineer", "Rejected", DateTime.Now.AddDays(-18))
+            new JobApplication(4, "Discord", "Platform Engineer", "Rejected", DateTime.Now.AddDays(-18))
             {
                 Location = "San Francisco, CA",
                 SalaryEstimate = "$140k-170k",
@@ -68,7 +68,7 @@ namespace JobTracker.Server.Tests
                 LastHeardDate = DateTime.Now.AddDays(-5),
                 JobLink = "https://discord.com/jobs/platform-engineer-infrastructure"
             },
-            new JobApplication(16, "Stripe", "API Developer", "Offered", DateTime.Now.AddDays(-22))
+            new JobApplication(5, "Stripe", "API Developer", "Offered", DateTime.Now.AddDays(-22))
             {
                 Location = "Remote (US)",
                 SalaryEstimate = "$155k-185k",
