@@ -2,8 +2,8 @@
 {
     public class JobApplication
     {
-        public int Id { get; init; }
-        public string CompanyName { get; init; } = string.Empty;
+        public int Id { get; set; }
+        public string CompanyName { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
         public string? RoleDescription { get; set; }
         public DateTime ApplicationDate { get; set; }
@@ -16,6 +16,9 @@
         public string? JobLink { get; set; }
         public bool? Referral { get; set; }
         public string? Notes { get; set; }
+
+        // Parameterless constructor for EF Core
+        public JobApplication() { }
 
         public JobApplication(int id, string companyName, string role, string status, DateTime applicationDate)
         {
