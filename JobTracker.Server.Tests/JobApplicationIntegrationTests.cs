@@ -8,6 +8,7 @@ using JobTracker.Server.Models;
 using JobTracker.Server.Data;
 using System.Text.Json;
 using System.Net.Http.Json;
+using Microsoft.AspNetCore.Mvc;
 
 namespace JobTracker.Server.Tests
 {
@@ -51,12 +52,12 @@ namespace JobTracker.Server.Tests
         }
     }
 
-    public class JobApplicationUnitTests : IClassFixture<TestWebApplicationFactory>
+    public class JobApplicationIntegrationTests : IClassFixture<TestWebApplicationFactory>
     {
         private readonly HttpClient _client;
         private readonly TestWebApplicationFactory _factory;
 
-        public JobApplicationUnitTests(TestWebApplicationFactory factory)
+        public JobApplicationIntegrationTests(TestWebApplicationFactory factory)
         {
             _factory = factory;
             _client = factory.WithWebHostBuilder(builder => { }).CreateClient();
@@ -74,7 +75,7 @@ namespace JobTracker.Server.Tests
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
             Assert.NotNull(applications);
-            Assert.Equal(5, applications.Length);
+            Assert.Equal(6, applications.Length);
         }
 
         [Fact]
@@ -142,6 +143,64 @@ namespace JobTracker.Server.Tests
             Assert.Equal(new DateTime(2025, 4, 10), application.InterviewDates[1]);
             Assert.Equal(new DateTime(2025, 4, 2), application.LastHeardDate);
             Assert.Equal("", application.JobLink);
+        }
+
+        [Fact]
+        public async Task GetStats_ReturnsCorrectCounts()
+        {
+            var response = await _client.GetAsync("/api/JobApplication/stats");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var stats = JsonSerializer.Deserialize<Dictionary<string, int>>(
+                await response.Content.ReadAsStringAsync(),
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            Assert.NotNull(stats);
+            Assert.Equal(6, stats["totalApplications"]);
+            Assert.Equal(1, stats["pendingInterviews"]);
+            Assert.Equal(10, stats["totalInterviews"]);
+            Assert.Equal(1, stats["totalOffers"]);
+        }
+
+        [Fact]
+        public async Task GetApplicationByStatus_ReturnsOk()
+        {
+            var response = await _client.GetAsync("/api/JobApplication/by-status/Interviewing");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var applications = JsonSerializer.Deserialize<JobApplication[]>(
+                await response.Content.ReadAsStringAsync(),
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            Assert.NotNull(applications);
+            Assert.Single(applications);
+            Assert.Equal("Airbnb", applications[0].CompanyName);
+            Assert.Equal("Frontend Engineer", applications[0].Role);
+            Assert.Equal("Interviewing", applications[0].Status);
+            Assert.Equal(2, applications[0].Id);
+        }
+
+        [Fact]
+        public async Task GetApplicationsByStatus_ReturnsOk()
+        {
+            var response = await _client.GetAsync("/api/JobApplication/by-status/applied");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var applications = JsonSerializer.Deserialize<JobApplication[]>(
+                await response.Content.ReadAsStringAsync(),
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            Assert.NotNull(applications);
+            Assert.Equal("Shopify", applications[0].CompanyName);
+            Assert.Equal("Backend Developer", applications[0].Role);
+            Assert.Equal("Applied", applications[0].Status);
+            Assert.Equal(3, applications[0].Id);
+
+            Assert.Equal("Shopers+", applications[1].CompanyName);
+            Assert.Equal("Backend Developer", applications[1].Role);
+            Assert.Equal("Applied", applications[1].Status);
+            Assert.Equal(6, applications[1].Id);
+        }
+
+        [Fact]
+        public async Task GetApplicationByStatus_ReturnsNotFound()
+        {
+            var response = await _client.GetAsync("/api/JobApplication/by-status/NonExistentStatus");
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
     }
 }

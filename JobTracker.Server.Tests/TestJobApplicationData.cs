@@ -84,6 +84,18 @@ namespace JobTracker.Server.Tests
                 },
                 LastHeardDate = DateTime.Now.AddDays(-1),
                 JobLink = "https://stripe.com/jobs/api-developer-platform"
+            },
+            new JobApplication(6, "Shopers+", "Backend Developer", "Applied", DateTime.Now.AddDays(-14))
+            {
+                Location = "Oklahoma City, OK",
+                SalaryEstimate = "$110-120k",
+                Notes = "Applied through online options.",
+                JobType = "Contract",
+                Referral = true,
+                RoleDescription = "Build scalable e-commerce APIs",
+                InterviewDates = null,
+                LastHeardDate = DateTime.Now.AddDays(-10),
+                JobLink = ""
             }
             };
         }

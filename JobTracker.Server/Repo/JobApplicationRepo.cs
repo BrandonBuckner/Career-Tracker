@@ -49,7 +49,7 @@ namespace JobTracker.Server.Repo
         public async Task<IEnumerable<JobApplication>> GetByStatusAsync(string status)
         {
             return await _context.JobApplications
-                .Where(a => EF.Functions.ILike(a.Status, status))
+                .Where(a => EF.Functions.Like(a.Status, status))
                 .ToListAsync();
         }
 
@@ -59,8 +59,8 @@ namespace JobTracker.Server.Repo
                 return new List<JobApplication>();
 
             return await _context.JobApplications
-                .Where(a => EF.Functions.ILike(a.CompanyName, $"%{term}%") ||
-                           EF.Functions.ILike(a.Role, $"%{term}%"))
+                .Where(a => EF.Functions.Like(a.CompanyName, $"%{term}%") ||
+                           EF.Functions.Like(a.Role, $"%{term}%"))
                 .ToListAsync();
         }
 
