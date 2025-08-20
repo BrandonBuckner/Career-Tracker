@@ -9,6 +9,7 @@ using JobTracker.Server.Data;
 using System.Text.Json;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace JobTracker.Server.Tests
 {
@@ -41,8 +42,8 @@ namespace JobTracker.Server.Tests
                     var context = scope.ServiceProvider.GetRequiredService<JobApplicationDBContext>();
 
                     // Clear existing data
-                    context.Database.EnsureDeleted();
-                    context.Database.EnsureCreated();
+                    context.JobApplications.RemoveRange(context.JobApplications.ToList());
+                    context.SaveChanges();
 
                     // Adds test data
                     context.JobApplications.AddRange(TestJobApplicationData.GetTestApplications());
@@ -176,8 +177,9 @@ namespace JobTracker.Server.Tests
             Assert.Equal(2, applications[0].Id);
         }
 
+        //TODO: Check repo out for how results should be sorted and returned 
         [Fact]
-        public async Task GetApplicationsByStatus_ReturnsOk()
+        public async Task GetMultipleApplicationsByStatus_ReturnsOk()
         {
             var response = await _client.GetAsync("/api/JobApplication/by-status/applied");
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -200,6 +202,74 @@ namespace JobTracker.Server.Tests
         public async Task GetApplicationByStatus_ReturnsNotFound()
         {
             var response = await _client.GetAsync("/api/JobApplication/by-status/NonExistentStatus");
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetApplicationByNameSearch_ReturnsOk()
+        {
+            var response = await _client.GetAsync("/api/JobApplication/search?term=discord");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var applications = JsonSerializer.Deserialize<JobApplication[]>(
+                await response.Content.ReadAsStringAsync(),
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            Assert.NotNull(applications);
+            Assert.Single(applications);
+            Assert.Equal("Discord", applications[0].CompanyName);
+            Assert.Equal("Platform Engineer", applications[0].Role);
+            Assert.Equal("Rejected", applications[0].Status);
+            Assert.Equal(4, applications[0].Id);
+        }
+
+        [Fact]
+        public async Task GetMultipleApplicationByNameSearch_ReturnsOk()
+        {
+            var response = await _client.GetAsync("/api/JobApplication/search?term=s");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var applications = JsonSerializer.Deserialize<JobApplication[]>(
+                await response.Content.ReadAsStringAsync(),
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            Assert.NotNull(applications);
+            Assert.Equal(5, applications.Length);
+        }
+
+        //TODO: Check repo out to ensure it returns not found if nothing was found 
+        [Fact]
+        public async Task GetApplicationByNameSearch_ReturnsNotFound()
+        {
+            var response = await _client.GetAsync("/api/JobApplication/search?term=NonExistentCompany");
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetApplicationByRole_ReturnsOk()
+        {
+            var response = await _client.GetAsync("/api/JobApplication/search?term=Software+Engineer");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var applications = JsonSerializer.Deserialize<JobApplication[]>(
+                await response.Content.ReadAsStringAsync(),
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            Assert.NotNull(applications);
+            Assert.Single(applications);
+        }
+
+        [Fact]
+        public async Task GetMultipleApplicationsByRole_ReturnsOk()
+        {
+            var response = await _client.GetAsync("/api/JobApplication/search?term=Engineer");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var applications = JsonSerializer.Deserialize<JobApplication[]>(
+                await response.Content.ReadAsStringAsync(),
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            Assert.NotNull(applications);
+            Assert.Equal(3, applications.Length);
+        }
+
+        //TODO: Check repo out to ensure it returns not found if nothing was found
+        [Fact]
+        public async Task GetApplicationByRole_ReturnsNotFound()
+        {
+            var response = await _client.GetAsync("/api/JobApplication/search?term=NonExistentRole");
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
     }
