@@ -162,7 +162,7 @@ namespace JobTracker.Server.Tests
         }
 
         [Fact]
-        public async Task GetApplicationByStatus_ReturnsOk()
+        public async Task GetApplicationByStatus_ReturnsApplications()
         {
             var response = await _client.GetAsync("/api/JobApplication/by-status/Interviewing");
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -179,7 +179,7 @@ namespace JobTracker.Server.Tests
 
         //TODO: Check repo out for how results should be sorted and returned 
         [Fact]
-        public async Task GetMultipleApplicationsByStatus_ReturnsOk()
+        public async Task GetMultipleApplicationsByStatus_ReturnsMultiple()
         {
             var response = await _client.GetAsync("/api/JobApplication/by-status/applied");
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -206,7 +206,7 @@ namespace JobTracker.Server.Tests
         }
 
         [Fact]
-        public async Task GetApplicationByNameSearch_ReturnsOk()
+        public async Task GetApplicationByNameSearch_ReturnsOne()
         {
             var response = await _client.GetAsync("/api/JobApplication/search?term=discord");
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -222,7 +222,7 @@ namespace JobTracker.Server.Tests
         }
 
         [Fact]
-        public async Task GetMultipleApplicationByNameSearch_ReturnsOk()
+        public async Task GetMultipleApplicationByNameSearch_ReturnsMultiple()
         {
             var response = await _client.GetAsync("/api/JobApplication/search?term=s");
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -242,7 +242,7 @@ namespace JobTracker.Server.Tests
         }
 
         [Fact]
-        public async Task GetApplicationByRole_ReturnsOk()
+        public async Task GetApplicationByRole_ReturnsApplication()
         {
             var response = await _client.GetAsync("/api/JobApplication/search?term=Software+Engineer");
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -254,7 +254,7 @@ namespace JobTracker.Server.Tests
         }
 
         [Fact]
-        public async Task GetMultipleApplicationsByRole_ReturnsOk()
+        public async Task GetMultipleApplicationsByRole_ReturnsMultiple()
         {
             var response = await _client.GetAsync("/api/JobApplication/search?term=Engineer");
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -272,5 +272,48 @@ namespace JobTracker.Server.Tests
             var response = await _client.GetAsync("/api/JobApplication/search?term=NonExistentRole");
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
+
+        [Fact]
+        public async Task GetRecentApplications_ReturnsRecent()
+        {
+            var response = await _client.GetAsync("/api/JobApplication/recent");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var applications = JsonSerializer.Deserialize<JobApplication[]>(
+                await response.Content.ReadAsStringAsync(),
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            Assert.NotNull(applications);
+            Assert.Equal(5, applications.Length);
+        }
+
+        [Fact] 
+        public async Task GetRecentApplicationWithinLimit_ReturnsRecentCustomNum()
+        {
+            var response = await _client.GetAsync("/api/JobApplication/recent?limit=3");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var applications = JsonSerializer.Deserialize<JobApplication[]>(
+                await response.Content.ReadAsStringAsync(),
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            Assert.NotNull(applications);
+            Assert.Equal(3, applications.Length);
+        }
+
+        [Fact]
+        public async Task GetRecentApplicationsOverLimit_ReturnsBadRequest()
+        {
+            var response = await _client.GetAsync("/api/JobApplication/recent?limit=21");
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            var errorMessage = await response.Content.ReadAsStringAsync();
+            Assert.Equal("Limit cannot exceed 20.", errorMessage);
+        }
+
+        [Fact]
+        public async Task GetRecentApplicationsWithNegativeLimit_ReturnsBadRequest()
+        {
+            var response = await _client.GetAsync("/api/JobApplication/recent?limit=-5");
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            var errorMessage = await response.Content.ReadAsStringAsync();
+            Assert.Equal("Limit must be a positive integer.", errorMessage);
+        }
+
     }
 }
