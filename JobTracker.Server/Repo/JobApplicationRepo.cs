@@ -47,25 +47,7 @@ namespace JobTracker.Server.Repo
                 .FirstOrDefaultAsync(a => a.Id == id);
         }
 
-        public async Task<IEnumerable<JobApplication>> GetByStatusAsync(string status)
-        {
-            return await _context.JobApplications
-                .Where(a => EF.Functions.Like(a.Status, status))
-                .ToListAsync();
-        }
-
-        public async Task<IEnumerable<JobApplication>> SearchAsync(string term)
-        {
-            if (string.IsNullOrWhiteSpace(term))
-                return new List<JobApplication>();
-
-            return await _context.JobApplications
-                .Where(a => EF.Functions.Like(a.CompanyName, $"%{term}%") ||
-                           EF.Functions.Like(a.Role, $"%{term}%"))
-                .ToListAsync();
-        }
-
-        public async Task<IEnumerable<JobApplication>> SearchAsync2(string status, string? searchTerm)
+        public async Task<IEnumerable<JobApplication>> SearchAsync(string status, string? searchTerm)
         {
             searchTerm = String.IsNullOrWhiteSpace(searchTerm) ? string.Empty : searchTerm;
             if (status == "all" && searchTerm == string.Empty)

@@ -46,30 +46,10 @@ namespace JobTracker.Server.Controllers
             });
         }
 
-        [HttpGet("by-status/{status}")]
-        public async Task<ActionResult<IEnumerable<JobApplication>>> GetApplicationsByStatus(string status)
-        {
-            var applications = await _repository.GetByStatusAsync(status);
-            if (!applications.Any())
-                return NotFound();
-
-            return Ok(applications);
-        }
-
         [HttpGet("search")]
-        public async Task<ActionResult<IEnumerable<JobApplication>>> SearchApplications([FromQuery] string term)
-        {
-            if (string.IsNullOrWhiteSpace(term))
-                return BadRequest("Search term cannot be null or empty.");
-
-            var applications = await _repository.SearchAsync(term);
-            return Ok(applications);
-        }
-
-        [HttpGet("search2")]
         public async Task<ActionResult<IEnumerable<JobApplication>>> GetApplications([FromQuery] string status, [FromQuery] string? searchTerm)
         {
-            var applications = await _repository.SearchAsync2(status, searchTerm);
+            var applications = await _repository.SearchAsync(status, searchTerm);
             if(!applications.Any()) return NotFound();
             return Ok(applications);
         }

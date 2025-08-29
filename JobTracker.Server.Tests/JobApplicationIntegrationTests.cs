@@ -162,118 +162,6 @@ namespace JobTracker.Server.Tests
         }
 
         [Fact]
-        public async Task GetApplicationByStatus_ReturnsApplications()
-        {
-            var response = await _client.GetAsync("/api/JobApplication/by-status/Interviewing");
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var applications = JsonSerializer.Deserialize<JobApplication[]>(
-                await response.Content.ReadAsStringAsync(),
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            Assert.NotNull(applications);
-            Assert.Single(applications);
-            Assert.Equal("Airbnb", applications[0].CompanyName);
-            Assert.Equal("Frontend Engineer", applications[0].Role);
-            Assert.Equal("Interviewing", applications[0].Status);
-            Assert.Equal(2, applications[0].Id);
-        }
-
-        //TODO: Check repo out for how results should be sorted and returned 
-        [Fact]
-        public async Task GetMultipleApplicationsByStatus_ReturnsMultiple()
-        {
-            var response = await _client.GetAsync("/api/JobApplication/by-status/applied");
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var applications = JsonSerializer.Deserialize<JobApplication[]>(
-                await response.Content.ReadAsStringAsync(),
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            Assert.NotNull(applications);
-            Assert.Equal("Shopify", applications[0].CompanyName);
-            Assert.Equal("Backend Developer", applications[0].Role);
-            Assert.Equal("Applied", applications[0].Status);
-            Assert.Equal(3, applications[0].Id);
-
-            Assert.Equal("Shopers+", applications[1].CompanyName);
-            Assert.Equal("Backend Developer", applications[1].Role);
-            Assert.Equal("Applied", applications[1].Status);
-            Assert.Equal(6, applications[1].Id);
-        }
-
-        [Fact]
-        public async Task GetApplicationByStatus_ReturnsNotFound()
-        {
-            var response = await _client.GetAsync("/api/JobApplication/by-status/NonExistentStatus");
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        }
-
-        [Fact]
-        public async Task GetApplicationByNameSearch_ReturnsOne()
-        {
-            var response = await _client.GetAsync("/api/JobApplication/search?term=discord");
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var applications = JsonSerializer.Deserialize<JobApplication[]>(
-                await response.Content.ReadAsStringAsync(),
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            Assert.NotNull(applications);
-            Assert.Single(applications);
-            Assert.Equal("Discord", applications[0].CompanyName);
-            Assert.Equal("Platform Engineer", applications[0].Role);
-            Assert.Equal("Rejected", applications[0].Status);
-            Assert.Equal(4, applications[0].Id);
-        }
-
-        [Fact]
-        public async Task GetMultipleApplicationByNameSearch_ReturnsMultiple()
-        {
-            var response = await _client.GetAsync("/api/JobApplication/search?term=s");
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var applications = JsonSerializer.Deserialize<JobApplication[]>(
-                await response.Content.ReadAsStringAsync(),
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            Assert.NotNull(applications);
-            Assert.Equal(5, applications.Length);
-        }
-
-        //TODO: Check repo out to ensure it returns not found if nothing was found 
-        [Fact]
-        public async Task GetApplicationByNameSearch_ReturnsNotFound()
-        {
-            var response = await _client.GetAsync("/api/JobApplication/search?term=NonExistentCompany");
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        }
-
-        [Fact]
-        public async Task GetApplicationByRole_ReturnsApplication()
-        {
-            var response = await _client.GetAsync("/api/JobApplication/search?term=Software+Engineer");
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var applications = JsonSerializer.Deserialize<JobApplication[]>(
-                await response.Content.ReadAsStringAsync(),
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            Assert.NotNull(applications);
-            Assert.Single(applications);
-        }
-
-        [Fact]
-        public async Task GetMultipleApplicationsByRole_ReturnsMultiple()
-        {
-            var response = await _client.GetAsync("/api/JobApplication/search?term=Engineer");
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var applications = JsonSerializer.Deserialize<JobApplication[]>(
-                await response.Content.ReadAsStringAsync(),
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            Assert.NotNull(applications);
-            Assert.Equal(3, applications.Length);
-        }
-
-        //TODO: Check repo out to ensure it returns not found if nothing was found
-        [Fact]
-        public async Task GetApplicationByRole_ReturnsNotFound()
-        {
-            var response = await _client.GetAsync("/api/JobApplication/search?term=NonExistentRole");
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        }
-
-        [Fact]
         public async Task GetRecentApplications_ReturnsRecent()
         {
             var response = await _client.GetAsync("/api/JobApplication/recent");
@@ -318,7 +206,7 @@ namespace JobTracker.Server.Tests
         [Fact]
         public async Task GetApplicationsByTerm_ReturnsResult()
         {
-            var response = await _client.GetAsync("/api/JobApplication/search2?status=all&searchTerm=Tesla");
+            var response = await _client.GetAsync("/api/JobApplication/search?status=all&searchTerm=Tesla");
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var applications = JsonSerializer.Deserialize<JobApplication[]>(
                 await response.Content.ReadAsStringAsync(),
@@ -330,7 +218,7 @@ namespace JobTracker.Server.Tests
         [Fact]
         public async Task GetApplicationsByStatus_ReturnsResult()
         {
-            var response = await _client.GetAsync("/api/JobApplication/search2?status=Interviewing");
+            var response = await _client.GetAsync("/api/JobApplication/search?status=Interviewing");
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var applications = JsonSerializer.Deserialize<JobApplication[]>(
                 await response.Content.ReadAsStringAsync(),
@@ -342,7 +230,7 @@ namespace JobTracker.Server.Tests
         [Fact]
         public async Task GetApplicationsByTermAndStatus_ReturnsResult()
         {
-            var response = await _client.GetAsync("/api/JobApplication/search2?status=Interviewing&searchTerm=Airbnb");
+            var response = await _client.GetAsync("/api/JobApplication/search?status=Interviewing&searchTerm=Airbnb");
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var applications = JsonSerializer.Deserialize<JobApplication[]>(
                 await response.Content.ReadAsStringAsync(),
@@ -354,7 +242,7 @@ namespace JobTracker.Server.Tests
         [Fact]
         public async Task GetApplicationsByTermAndAllStatus_ReturnsResults()
         {
-            var response = await _client.GetAsync("/api/JobApplication/search2?status=all&searchTerm=Engineer");
+            var response = await _client.GetAsync("/api/JobApplication/search?status=all&searchTerm=Engineer");
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var applications = JsonSerializer.Deserialize<JobApplication[]>(
                 await response.Content.ReadAsStringAsync(),
@@ -366,14 +254,14 @@ namespace JobTracker.Server.Tests
         [Fact]
         public async Task GetApplicationsByTermAndStatus_ReturnsNotFound()
         {
-            var response = await _client.GetAsync("/api/JobApplication/search2?status=applied&searchTerm=Tesla");
+            var response = await _client.GetAsync("/api/JobApplication/search?status=applied&searchTerm=Tesla");
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [Fact]
         public async Task GetApplicationsByTermAndBadStatus_ReturnsNotFound()
         {
-            var response = await _client.GetAsync("/api/JobApplication/search2?status=bad&searchTerm=Engineer");
+            var response = await _client.GetAsync("/api/JobApplication/search?status=bad&searchTerm=Engineer");
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
     }
