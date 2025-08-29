@@ -46,6 +46,8 @@ namespace JobTracker.Server.Controllers
             });
         }
 
+        // Optional Controller Method to search applications by status and/or search term via the API 
+        // Otherwise filtering is handled via the client side
         [HttpGet("search")]
         public async Task<ActionResult<IEnumerable<JobApplication>>> GetApplications([FromQuery] string status, [FromQuery] string? searchTerm)
         {

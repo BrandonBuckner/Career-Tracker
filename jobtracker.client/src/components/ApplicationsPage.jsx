@@ -5,7 +5,7 @@ function ApplicationsPage({ jobApplications, setSelectedJob, getStatusBadge, for
     const [filterStatus, setFilterStatus] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
 
-    /* Filters jobs based on their status and or what was typed in the search box*/
+    /* Filters jobs on the client-side based on their status and or what was typed in the search box*/
     const filteredJobs = jobApplications.filter(job => {
         const matchesStatus = filterStatus === 'all' || job.status === filterStatus;
         const matchesSearch = job.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
