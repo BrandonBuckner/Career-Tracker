@@ -46,23 +46,13 @@ namespace JobTracker.Server.Controllers
             });
         }
 
-        [HttpGet("by-status/{status}")]
-        public async Task<ActionResult<IEnumerable<JobApplication>>> GetApplicationsByStatus(string status)
-        {
-            var applications = await _repository.GetByStatusAsync(status);
-            if (!applications.Any())
-                return NotFound();
-
-            return Ok(applications);
-        }
-
+        // Optional Controller Method to search applications by status and/or search term via the API 
+        // Otherwise filtering is handled via the client side
         [HttpGet("search")]
-        public async Task<ActionResult<IEnumerable<JobApplication>>> SearchApplications([FromQuery] string term)
+        public async Task<ActionResult<IEnumerable<JobApplication>>> GetApplications([FromQuery] string status, [FromQuery] string? searchTerm)
         {
-            if (string.IsNullOrWhiteSpace(term))
-                return BadRequest("Search term cannot be null or empty.");
-
-            var applications = await _repository.SearchAsync(term);
+            var applications = await _repository.SearchAsync(status, searchTerm);
+            if(!applications.Any()) return NotFound();
             return Ok(applications);
         }
 

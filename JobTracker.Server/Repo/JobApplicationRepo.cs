@@ -2,6 +2,7 @@
 using JobTracker.Server.Data;
 using JobTracker.Server.Interfaces;
 using JobTracker.Server.Models;
+using System.Globalization;
 
 namespace JobTracker.Server.Repo
 {
@@ -46,21 +47,29 @@ namespace JobTracker.Server.Repo
                 .FirstOrDefaultAsync(a => a.Id == id);
         }
 
-        public async Task<IEnumerable<JobApplication>> GetByStatusAsync(string status)
+        public async Task<IEnumerable<JobApplication>> SearchAsync(string status, string? searchTerm)
         {
+            searchTerm = String.IsNullOrWhiteSpace(searchTerm) ? string.Empty : searchTerm;
+            if (status == "all" && searchTerm == string.Empty)
+            {
+                return await _context.JobApplications
+                    .ToListAsync();
+            } 
+            if (status != "all" && searchTerm == string.Empty)
+            {
+                return await _context.JobApplications
+                    .Where(a => a.Status == status)
+                    .ToListAsync();
+            }
+            if (status == "all" && searchTerm != string.Empty)
+            {
+                return await _context.JobApplications
+                    .Where(a => EF.Functions.Like(a.CompanyName, $"%{searchTerm}%") || EF.Functions.Like(a.Role, $"%{searchTerm}%"))
+                    .ToListAsync();
+            }
             return await _context.JobApplications
-                .Where(a => EF.Functions.Like(a.Status, status))
-                .ToListAsync();
-        }
-
-        public async Task<IEnumerable<JobApplication>> SearchAsync(string term)
-        {
-            if (string.IsNullOrWhiteSpace(term))
-                return new List<JobApplication>();
-
-            return await _context.JobApplications
-                .Where(a => EF.Functions.Like(a.CompanyName, $"%{term}%") ||
-                           EF.Functions.Like(a.Role, $"%{term}%"))
+                .Where(a => a.Status == status &&
+                    (EF.Functions.Like(a.CompanyName, $"%{searchTerm}%") || EF.Functions.Like(a.Role, $"%{searchTerm}%")))
                 .ToListAsync();
         }
 
