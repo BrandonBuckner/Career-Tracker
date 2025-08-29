@@ -315,5 +315,66 @@ namespace JobTracker.Server.Tests
             Assert.Equal("Limit must be a positive integer.", errorMessage);
         }
 
+        [Fact]
+        public async Task GetApplicationsByTerm_ReturnsResult()
+        {
+            var response = await _client.GetAsync("/api/JobApplication/search2?status=all&searchTerm=Tesla");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var applications = JsonSerializer.Deserialize<JobApplication[]>(
+                await response.Content.ReadAsStringAsync(),
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            Assert.NotNull(applications);
+            Assert.Single(applications);
+        }
+
+        [Fact]
+        public async Task GetApplicationsByStatus_ReturnsResult()
+        {
+            var response = await _client.GetAsync("/api/JobApplication/search2?status=Interviewing");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var applications = JsonSerializer.Deserialize<JobApplication[]>(
+                await response.Content.ReadAsStringAsync(),
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            Assert.NotNull(applications);
+            Assert.Single(applications);
+        }
+
+        [Fact]
+        public async Task GetApplicationsByTermAndStatus_ReturnsResult()
+        {
+            var response = await _client.GetAsync("/api/JobApplication/search2?status=Interviewing&searchTerm=Airbnb");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var applications = JsonSerializer.Deserialize<JobApplication[]>(
+                await response.Content.ReadAsStringAsync(),
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            Assert.NotNull(applications);
+            Assert.Single(applications);
+        }
+
+        [Fact]
+        public async Task GetApplicationsByTermAndAllStatus_ReturnsResults()
+        {
+            var response = await _client.GetAsync("/api/JobApplication/search2?status=all&searchTerm=Engineer");
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var applications = JsonSerializer.Deserialize<JobApplication[]>(
+                await response.Content.ReadAsStringAsync(),
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            Assert.NotNull(applications);
+            Assert.Equal(3, applications.Length);
+        }
+
+        [Fact]
+        public async Task GetApplicationsByTermAndStatus_ReturnsNotFound()
+        {
+            var response = await _client.GetAsync("/api/JobApplication/search2?status=applied&searchTerm=Tesla");
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetApplicationsByTermAndBadStatus_ReturnsNotFound()
+        {
+            var response = await _client.GetAsync("/api/JobApplication/search2?status=bad&searchTerm=Engineer");
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
     }
 }

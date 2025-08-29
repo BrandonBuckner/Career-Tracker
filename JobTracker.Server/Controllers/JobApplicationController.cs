@@ -66,6 +66,14 @@ namespace JobTracker.Server.Controllers
             return Ok(applications);
         }
 
+        [HttpGet("search2")]
+        public async Task<ActionResult<IEnumerable<JobApplication>>> GetApplications([FromQuery] string status, [FromQuery] string? searchTerm)
+        {
+            var applications = await _repository.SearchAsync2(status, searchTerm);
+            if(!applications.Any()) return NotFound();
+            return Ok(applications);
+        }
+
         [HttpGet("recent")]
         public async Task<ActionResult<IEnumerable<JobApplication>>> GetRecentApplications([FromQuery] int limit = 5)
         {

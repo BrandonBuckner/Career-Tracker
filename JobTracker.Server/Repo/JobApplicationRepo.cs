@@ -2,6 +2,7 @@
 using JobTracker.Server.Data;
 using JobTracker.Server.Interfaces;
 using JobTracker.Server.Models;
+using System.Globalization;
 
 namespace JobTracker.Server.Repo
 {
@@ -61,6 +62,32 @@ namespace JobTracker.Server.Repo
             return await _context.JobApplications
                 .Where(a => EF.Functions.Like(a.CompanyName, $"%{term}%") ||
                            EF.Functions.Like(a.Role, $"%{term}%"))
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<JobApplication>> SearchAsync2(string status, string? searchTerm)
+        {
+            searchTerm = String.IsNullOrWhiteSpace(searchTerm) ? string.Empty : searchTerm;
+            if (status == "all" && searchTerm == string.Empty)
+            {
+                return await _context.JobApplications
+                    .ToListAsync();
+            } 
+            if (status != "all" && searchTerm == string.Empty)
+            {
+                return await _context.JobApplications
+                    .Where(a => a.Status == status)
+                    .ToListAsync();
+            }
+            if (status == "all" && searchTerm != string.Empty)
+            {
+                return await _context.JobApplications
+                    .Where(a => EF.Functions.Like(a.CompanyName, $"%{searchTerm}%") || EF.Functions.Like(a.Role, $"%{searchTerm}%"))
+                    .ToListAsync();
+            }
+            return await _context.JobApplications
+                .Where(a => a.Status == status &&
+                    (EF.Functions.Like(a.CompanyName, $"%{searchTerm}%") || EF.Functions.Like(a.Role, $"%{searchTerm}%")))
                 .ToListAsync();
         }
 
