@@ -28,7 +28,11 @@ const CreateApplication = ({ isOpen, onClose, onSubmit }) => {
 
         // Clear error for this field when user starts typing
         if (errors[name]) {
-            setErrors(prev => ({ ...prev, [name]: null }));
+            setErrors(prev => {
+                const newErrors = { ...prev };
+                delete newErrors[name];
+                return newErrors;
+            });
         }
     };
 
@@ -67,7 +71,7 @@ const CreateApplication = ({ isOpen, onClose, onSubmit }) => {
             }
         });
 
-        const currentTime = new Date();
+        const currentTime = new Date().toISOString().split('T')[0];
 
         // Validate application date
         if (formData.applicationDate && new Date(formData.applicationDate) > currentTime) {
@@ -95,23 +99,7 @@ const CreateApplication = ({ isOpen, onClose, onSubmit }) => {
         return newErrors;
     };
 
-    const handleSubmit = () => {
-        const validationErrors = validateData();
-
-        if (Object.keys(validationErrors).length > 0) {
-            setErrors(validationErrors);
-            return;
-        }
-
-        // Filter out empty interview dates
-        const cleanedData = {
-            ...formData,
-            interviewDates: formData.interviewDates.filter(date => date !== '')
-        };
-
-        onSubmit(cleanedData);
-
-        // Reset form
+    const resetFormData = () =>
         setFormData({
             companyName: '',
             role: '',
@@ -126,12 +114,42 @@ const CreateApplication = ({ isOpen, onClose, onSubmit }) => {
             jobLink: '',
             referral: false,
             notes: ''
-        });
+    });
+
+    const handleSubmit = () => {
+        const validationErrors = validateData();
+
+        if (Object.keys(validationErrors).length > 0) {
+            setErrors(validationErrors);
+            return;
+        }
+
+        // Prepare data for API - convert empty strings to null for optional fields
+        const cleanedData = {
+            companyName: formData.companyName,
+            role: formData.role,
+            roleDescription: formData.roleDescription || null,
+            applicationDate: formData.applicationDate,
+            status: formData.status,
+            lastHeardDate: formData.lastHeardDate || null,
+            interviewDates: formData.interviewDates.filter(date => date !== ''),
+            jobType: formData.jobType || null,
+            location: formData.location || null,
+            salaryEstimate: formData.salaryEstimate || null,
+            jobLink: formData.jobLink || null,
+            referral: formData.referral,
+            notes: formData.notes || null
+        };
+
+        // Send data directly, not wrapped in an object
+        onSubmit(cleanedData);
+        resetFormData();
         setErrors({});
         onClose();
     };
 
     const handleClose = () => {
+        resetFormData();
         setErrors({});
         onClose();
     };
@@ -153,13 +171,8 @@ const CreateApplication = ({ isOpen, onClose, onSubmit }) => {
                                     <label htmlFor="companyName" className="form-label">
                                         Company Name <span className="text-danger">*</span>
                                     </label>
-                                    <input
-                                        type="text"
-                                        className={`form-control ${errors.companyName ? 'is-invalid' : ''}`}
-                                        id="companyName"
-                                        name="companyName"
-                                        value={formData.companyName}
-                                        onChange={handleChange}
+                                    <input type="text" className={`form-control ${errors.companyName ? 'is-invalid' : ''}`}
+                                        id="companyName" name="companyName" value={formData.companyName} onChange={handleChange}
                                     />
                                     {errors.companyName && <div className="invalid-feedback">{errors.companyName}</div>}
                                 </div>
@@ -167,13 +180,8 @@ const CreateApplication = ({ isOpen, onClose, onSubmit }) => {
                                     <label htmlFor="role" className="form-label">
                                         Role <span className="text-danger">*</span>
                                     </label>
-                                    <input
-                                        type="text"
-                                        className={`form-control ${errors.role ? 'is-invalid' : ''}`}
-                                        id="role"
-                                        name="role"
-                                        value={formData.role}
-                                        onChange={handleChange}
+                                    <input type="text" className={`form-control ${errors.role ? 'is-invalid' : ''}`}
+                                        id="role" name="role" value={formData.role} onChange={handleChange}
                                     />
                                     {errors.role && <div className="invalid-feedback">{errors.role}</div>}
                                 </div>
@@ -181,15 +189,9 @@ const CreateApplication = ({ isOpen, onClose, onSubmit }) => {
 
                             <div className="mb-3">
                                 <label htmlFor="roleDescription" className="form-label">Role Description</label>
-                                <textarea
-                                    className="form-control"
-                                    id="roleDescription"
-                                    name="roleDescription"
-                                    rows="3"
-                                    value={formData.roleDescription}
-                                    onChange={handleChange}
-                                    placeholder="Describe the role..."
-                                ></textarea>
+                                <textarea className="form-control" id="roleDescription" name="roleDescription" rows="3"
+                                    value={formData.roleDescription} onChange={handleChange} placeholder="Describe the role...">
+                                </textarea>
                             </div>
 
                             <div className="row">
@@ -198,12 +200,8 @@ const CreateApplication = ({ isOpen, onClose, onSubmit }) => {
                                         Application Date <span className="text-danger">*</span>
                                     </label>
                                     <input
-                                        type="date"
-                                        className={`form-control ${errors.applicationDate ? 'is-invalid' : ''}`}
-                                        id="applicationDate"
-                                        name="applicationDate"
-                                        value={formData.applicationDate}
-                                        onChange={handleChange}
+                                        type="date" className={`form-control ${errors.applicationDate ? 'is-invalid' : ''}`}
+                                        id="applicationDate" name="applicationDate" value={formData.applicationDate} onChange={handleChange}
                                     />
                                     {errors.applicationDate && <div className="invalid-feedback">{errors.applicationDate}</div>}
                                 </div>
@@ -212,11 +210,8 @@ const CreateApplication = ({ isOpen, onClose, onSubmit }) => {
                                         Status <span className="text-danger">*</span>
                                     </label>
                                     <select
-                                        className={`form-select ${errors.status ? 'is-invalid' : ''}`}
-                                        id="status"
-                                        name="status"
-                                        value={formData.status}
-                                        onChange={handleChange}
+                                        className={`form-select ${errors.status ? 'is-invalid' : ''}`} id="status"
+                                        name="status" value={formData.status} onChange={handleChange}
                                     >
                                         <option value="Applied">Applied</option>
                                         <option value="Interviewing">Interviewing</option>
@@ -231,31 +226,19 @@ const CreateApplication = ({ isOpen, onClose, onSubmit }) => {
                             <div className="row">
                                 <div className="col-md-6 mb-3">
                                     <label htmlFor="lastHeardDate" className="form-label">Last Heard Date</label>
-                                    <input
-                                        type="date"
-                                        className={`form-control ${errors.lastHeardDate ? 'is-invalid' : ''}`}
-                                        id="lastHeardDate"
-                                        name="lastHeardDate"
-                                        value={formData.lastHeardDate}
-                                        onChange={handleChange}
+                                    <input type="date" className={`form-control ${errors.lastHeardDate ? 'is-invalid' : ''}`}
+                                        id="lastHeardDate" name="lastHeardDate" value={formData.lastHeardDate} onChange={handleChange}
                                     />
                                     {errors.lastHeardDate && <div className="invalid-feedback">{errors.lastHeardDate}</div>}
                                 </div>
                                 <div className="col-md-6 mb-3">
                                     <label htmlFor="jobType" className="form-label">Job Type</label>
-                                    <select
-                                        className="form-select"
-                                        id="jobType"
-                                        name="jobType"
-                                        value={formData.jobType}
-                                        onChange={handleChange}
-                                    >
+                                    <select className="form-select" id="jobType" name="jobType" value={formData.jobType}onChange={handleChange}>
                                         <option value="">Select Job Type</option>
                                         <option value="Full-time">Full-time</option>
                                         <option value="Part-time">Part-time</option>
                                         <option value="Contract">Contract</option>
                                         <option value="Internship">Internship</option>
-                                        <option value="Freelance">Freelance</option>
                                     </select>
                                 </div>
                             </div>
@@ -264,26 +247,13 @@ const CreateApplication = ({ isOpen, onClose, onSubmit }) => {
                                 <label className="form-label">Interview Dates</label>
                                 {formData.interviewDates.map((date, index) => (
                                     <div key={index} className="input-group mb-2">
-                                        <input
-                                            type="datetime-local"
-                                            className="form-control"
-                                            value={date}
-                                            onChange={(e) => handleInterviewDateChange(index, e.target.value)}
-                                        />
-                                        <button
-                                            type="button"
-                                            className="btn btn-outline-danger"
-                                            onClick={() => removeInterviewDate(index)}
-                                        >
+                                        <input type="datetime-local" className="form-control" value={date} onChange={(e) => handleInterviewDateChange(index, e.target.value)}/>
+                                        <button type="button" className="btn btn-outline-danger" onClick={() => removeInterviewDate(index)}>
                                             Remove
                                         </button>
                                     </div>
                                 ))}
-                                <button
-                                    type="button"
-                                    className="btn btn-outline-primary btn-sm"
-                                    onClick={addInterviewDate}
-                                >
+                                <button type="button" className="btn btn-outline-primary btn-sm" onClick={addInterviewDate}>
                                     Add Interview Date
                                 </button>
                             </div>
@@ -291,54 +261,25 @@ const CreateApplication = ({ isOpen, onClose, onSubmit }) => {
                             <div className="row">
                                 <div className="col-md-6 mb-3">
                                     <label htmlFor="location" className="form-label">Location</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        id="location"
-                                        name="location"
-                                        value={formData.location}
-                                        onChange={handleChange}
-                                        placeholder="e.g., New York, NY or Remote"
-                                    />
+                                    <input type="text" className="form-control" id="location" name="location" value={formData.location} onChange={handleChange} placeholder="e.g., New York, NY or Remote"/>
                                 </div>
                                 <div className="col-md-6 mb-3">
                                     <label htmlFor="salaryEstimate" className="form-label">Salary Estimate</label>
-                                    <input
-                                        type="text"
-                                        className="form-control"
-                                        id="salaryEstimate"
-                                        name="salaryEstimate"
-                                        value={formData.salaryEstimate}
-                                        onChange={handleChange}
-                                        placeholder="e.g., $80,000 - $100,000"
-                                    />
+                                    <input type="text" className="form-control" id="salaryEstimate" name="salaryEstimate" value={formData.salaryEstimate} onChange={handleChange} placeholder="e.g., $80,000 - $100,000"/>
                                 </div>
                             </div>
 
                             <div className="mb-3">
                                 <label htmlFor="jobLink" className="form-label">Job Link</label>
-                                <input
-                                    type="url"
-                                    className={`form-control ${errors.jobLink ? 'is-invalid' : ''}`}
-                                    id="jobLink"
-                                    name="jobLink"
-                                    value={formData.jobLink}
-                                    onChange={handleChange}
-                                    placeholder="https://example.com/job-posting"
+                                <input type="url" className={`form-control ${errors.jobLink ? 'is-invalid' : ''}`} id="jobLink"
+                                    name="jobLink" value={formData.jobLink} onChange={handleChange} placeholder="https://example.com/job-posting"
                                 />
                                 {errors.jobLink && <div className="invalid-feedback">{errors.jobLink}</div>}
                             </div>
 
                             <div className="mb-3">
                                 <div className="form-check">
-                                    <input
-                                        className="form-check-input"
-                                        type="checkbox"
-                                        id="referral"
-                                        name="referral"
-                                        checked={formData.referral}
-                                        onChange={handleChange}
-                                    />
+                                    <input className="form-check-input" type="checkbox" id="referral" name="referral" checked={formData.referral} onChange={handleChange}/>
                                     <label className="form-check-label" htmlFor="referral">
                                         Applied through referral
                                     </label>
@@ -347,15 +288,9 @@ const CreateApplication = ({ isOpen, onClose, onSubmit }) => {
 
                             <div className="mb-3">
                                 <label htmlFor="notes" className="form-label">Notes</label>
-                                <textarea
-                                    className="form-control"
-                                    id="notes"
-                                    name="notes"
-                                    rows="3"
-                                    value={formData.notes}
-                                    onChange={handleChange}
-                                    placeholder="Add any notes about this application..."
-                                ></textarea>
+                                <textarea className="form-control" id="notes" name="notes" rows="3" value={formData.notes}
+                                    onChange={handleChange} placeholder="Add any notes about this application...">
+                                </textarea>
                             </div>
 
                             {/* Error Summary Section */}

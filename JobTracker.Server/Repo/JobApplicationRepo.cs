@@ -81,9 +81,9 @@ namespace JobTracker.Server.Repo
                 .ToListAsync();
         }
 
-        // TODO: Update to check the DB for most recent ID of job application and increase it by one 
         public async Task<JobApplication> CreateAsync(JobApplication application)
         {
+            // Normalize all dates to UTC before saving
             NormalizeDatesToUtc(application);
             _context.JobApplications.Add(application);
             await _context.SaveChangesAsync();

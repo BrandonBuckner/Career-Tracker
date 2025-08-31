@@ -15,12 +15,41 @@ function ApplicationsPage({ jobApplications, setSelectedJob, getStatusBadge, for
         return matchesStatus && matchesSearch;
     });
 
-    const handleCreateApplication = (applicationData) => {
-        // Call the parent component's handler or make API call here
-        if (onCreateApplication) {
-            onCreateApplication(applicationData);
+    const handleCreateApplication = async (applicationData) => {
+        try {
+
+            const response = await fetch('/api/JobApplication', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(applicationData)
+            });
+
+            if (response.ok) {
+                const newApplication = await response.json();
+
+                // Update the parent component's state if a handler is provided
+                if (onCreateApplication) {
+                    onCreateApplication(newApplication);
+                } else {
+                    // If no handler provided, you might want to refresh the list
+                    // or add the new application to the existing list
+                    window.location.reload(); // Simple refresh approach
+                }
+
+                console.log('Application created successfully:', newApplication);
+            } else {
+                // Log the error response for debugging
+                const errorText = await response.text();
+                console.error('Failed to create application. Status:', response.status);
+                console.error('Error details:', errorText);
+                alert(`Failed to create application: ${errorText || response.statusText}`);
+            }
+        } catch (error) {
+            console.error('Error creating application:', error);
+            alert('An error occurred while creating the application. Please try again.');
         }
-        console.log('New application data:', applicationData);
     };
 
     return (
@@ -42,9 +71,8 @@ function ApplicationsPage({ jobApplications, setSelectedJob, getStatusBadge, for
                                 <option value="Rejected">Rejected</option>
                                 <option value="Withdrawn">Withdrawn</option>
                             </select>
-                            { //TODO: Update to a big plus or something }
                             <button className="btn btn-primary" onClick={() => setIsCreateOpen(true)} title="Create New Application">
-                                +
+                                <i className="bi bi-plus-lg"></i>
                             </button>
                         </div>
                     </div>
