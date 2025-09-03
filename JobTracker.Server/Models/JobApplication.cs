@@ -1,7 +1,12 @@
-﻿namespace JobTracker.Server.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+
+namespace JobTracker.Server.Models
 {
     public class JobApplication
     {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public string CompanyName { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;

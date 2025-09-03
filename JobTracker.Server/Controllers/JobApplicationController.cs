@@ -119,6 +119,5 @@ namespace JobTracker.Server.Controllers
 
             return NoContent();
         }
-
     }
 }

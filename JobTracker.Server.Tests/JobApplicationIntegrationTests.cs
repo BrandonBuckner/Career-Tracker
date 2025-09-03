@@ -264,5 +264,134 @@ namespace JobTracker.Server.Tests
             var response = await _client.GetAsync("/api/JobApplication/search?status=bad&searchTerm=Engineer");
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
+
+        [Fact]
+        public async Task CreateApplication_ReturnsCreated()
+        {
+            var newApplication = new JobApplication
+            {
+                CompanyName = "Google",
+                Role = "Backend Engineer",
+                Status = "Applied",
+                ApplicationDate = new DateTime(2025, 4, 10),
+                Location = "Mountain View, CA",
+                SalaryEstimate = "$130k-150k",
+                Notes = "Excited about this opportunity.",
+                JobType = "Full-time",
+                Referral = false,
+                RoleDescription = "Work on backend systems and services.",
+                InterviewDates = null,
+                LastHeardDate = null,
+                JobLink = "https://careers.google.com/jobs/results/123456-backend-engineer/"
+            };
+            var response = await _client.PostAsJsonAsync("/api/JobApplication", newApplication);
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+            var application = JsonSerializer.Deserialize<JobApplication>(
+                await response.Content.ReadAsStringAsync(),
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            Assert.NotNull(application);
+            Assert.Equal("Google", application.CompanyName);
+            Assert.Equal("Backend Engineer", application.Role);
+            Assert.Equal("Applied", application.Status);
+            Assert.Equal(new DateTime(2025, 4, 10), application.ApplicationDate);
+            Assert.Equal("Mountain View, CA", application.Location);
+            Assert.Equal("$130k-150k", application.SalaryEstimate);
+            Assert.Equal("Excited about this opportunity.", application.Notes);
+            Assert.Equal("Full-time", application.JobType);
+            Assert.False(application.Referral);
+            Assert.Equal("Work on backend systems and services.", application.RoleDescription);
+            Assert.Null(application.InterviewDates);
+            Assert.Null(application.LastHeardDate);
+            Assert.Equal("https://careers.google.com/jobs/results/123456-backend-engineer/", application.JobLink);
+        }
+
+        [Fact]
+        public async Task CreateApplicationMissingCompanyName_ReturnsBadRequest()
+        {
+            var newApplication = new JobApplication
+            {
+                Role = "Backend Engineer",
+                Status = "Applied",
+                ApplicationDate = new DateTime(2025, 4, 10),
+                Location = "Mountain View, CA",
+                SalaryEstimate = "$130k-150k",
+                Notes = "Excited about this opportunity.",
+                JobType = "Full-time",
+                Referral = false,
+                RoleDescription = "Work on backend systems and services.",
+                InterviewDates = null,
+                LastHeardDate = null,
+                JobLink = "https://careers.google.com/jobs/results/123456-backend-engineer/"
+            };
+            var response = await _client.PostAsJsonAsync("/api/JobApplication", newApplication);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task CreateApplicationMissingRole_ReturnsBadRequest()
+        {
+            var newApplication = new JobApplication
+            {
+                CompanyName = "Google",
+                Status = "Applied",
+                ApplicationDate = new DateTime(2025, 4, 10),
+                Location = "Mountain View, CA",
+                SalaryEstimate = "$130k-150k",
+                Notes = "Excited about this opportunity.",
+                JobType = "Full-time",
+                Referral = false,
+                RoleDescription = "Work on backend systems and services.",
+                InterviewDates = null,
+                LastHeardDate = null,
+                JobLink = "https://careers.google.com/jobs/results/123456-backend-engineer/"
+            };
+            var response = await _client.PostAsJsonAsync("/api/JobApplication", newApplication);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task CreateApplicationMissingStatus_ReturnsBadRequest()
+        {
+            var newApplication = new JobApplication
+            {
+                CompanyName = "Google",
+                Role = "Backend Engineer",
+                ApplicationDate = new DateTime(2025, 4, 10),
+                Location = "Mountain View, CA",
+                SalaryEstimate = "$130k-150k",
+                Notes = "Excited about this opportunity.",
+                JobType = "Full-time",
+                Referral = false,
+                RoleDescription = "Work on backend systems and services.",
+                InterviewDates = null,
+                LastHeardDate = null,
+                JobLink = "https://careers.google.com/jobs/results/123456-backend-engineer/"
+            };
+            var response = await _client.PostAsJsonAsync("/api/JobApplication", newApplication);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task CreateApplicationFutureTime_ReturnsBadRequest()
+        {
+            var newApplication = new JobApplication
+            {
+                CompanyName = "Google",
+                Status = "Applied",
+                Role = "Backend Engineer",
+                ApplicationDate = DateTime.Now.AddDays(1),
+                Location = "Mountain View, CA",
+                SalaryEstimate = "$130k-150k",
+                Notes = "Excited about this opportunity.",
+                JobType = "Full-time",
+                Referral = false,
+                RoleDescription = "Work on backend systems and services.",
+                InterviewDates = null,
+                LastHeardDate = null,
+                JobLink = "https://careers.google.com/jobs/results/123456-backend-engineer/"
+            };
+            var response = await _client.PostAsJsonAsync("/api/JobApplication", newApplication);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
     }
 }
