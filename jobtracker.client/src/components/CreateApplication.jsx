@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
 const CreateApplication = ({ isOpen, onClose, onSubmit }) => {
+
     const [formData, setFormData] = useState({
         companyName: '',
         role: '',
@@ -89,6 +90,10 @@ const CreateApplication = ({ isOpen, onClose, onSubmit }) => {
 
         // Validate job link URL if provided
         if (formData.jobLink && formData.jobLink.trim() !== '') {
+            if (!formData.jobLink.includes("https://")) {
+                formData.jobLink = "https://" + formData.jobLink;
+            }
+
             try {
                 new URL(formData.jobLink);
             } catch {
