@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ApplicationTable from './ApplicationTable';
 import CreateApplication from './CreateApplication';
 
-function ApplicationsPage({ jobApplications, setSelectedJob, getStatusBadge, formatDate, onCreateApplication }) {
+function ApplicationsPage({ jobApplications, setSelectedJob, getStatusBadge, formatDate, onCreateApplication, onDeleteApplication }) {
     const [filterStatus, setFilterStatus] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -28,17 +28,7 @@ function ApplicationsPage({ jobApplications, setSelectedJob, getStatusBadge, for
 
             if (response.ok) {
                 const newApplication = await response.json();
-
-                // Update the parent component's state if a handler is provided
-                if (onCreateApplication) {
-                    onCreateApplication(newApplication);
-                } else {
-                    // If no handler provided, you might want to refresh the list
-                    // or add the new application to the existing list
-                    window.location.reload(); // Simple refresh approach
-                }
-
-                console.log('Application created successfully:', newApplication);
+                onCreateApplication(newApplication);
             } else {
                 // Log the error response for debugging
                 const errorText = await response.text();
@@ -79,7 +69,7 @@ function ApplicationsPage({ jobApplications, setSelectedJob, getStatusBadge, for
                 </div>
             </div>
 
-            <ApplicationTable filteredJobs={filteredJobs} setSelectedJob={setSelectedJob} getStatusBadge={getStatusBadge} formatDate={formatDate}/>
+            <ApplicationTable filteredJobs={filteredJobs} setSelectedJob={setSelectedJob} getStatusBadge={getStatusBadge} formatDate={formatDate} onDeleteApplication={onDeleteApplication} />
             <CreateApplication isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} onSubmit={handleCreateApplication}/>
         </div>
     );
