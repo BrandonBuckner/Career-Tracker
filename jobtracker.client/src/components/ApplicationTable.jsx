@@ -1,4 +1,19 @@
-function ApplicationTable({ filteredJobs, setSelectedJob, getStatusBadge, formatDate }) {
+import React, { useState } from 'react';
+import DeleteApplication from './DeleteApplication';
+
+function ApplicationTable({ filteredJobs, setSelectedJob, getStatusBadge, formatDate, onDeleteApplication }) {
+    const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+    const [applicationToDelete, setApplicationToDelete] = useState(null);
+
+    const handleDeleteClick = (app) => {
+        setApplicationToDelete(app);  // Store which application we're deleting
+        setIsDeleteOpen(true);        // Open the modal
+    };
+
+    const handleDeleteConfirm = (applicationId) => {
+        onDeleteApplication(applicationId);
+    };
+
     return (
         <div className="card">
             <div className="card-body">
@@ -34,8 +49,11 @@ function ApplicationTable({ filteredJobs, setSelectedJob, getStatusBadge, format
                                     <td>{app.location || 'N/A'}</td>
                                     <td>{app.salaryEstimate || 'N/A'}</td>
                                     <td>
-                                        <button className="btn btn-outline-primary btn-sm" onClick={(e) => { e.stopPropagation(); setSelectedJob(app); }}>
+                                        <button className="btn btn-outline-primary btn-sm mx-2" onClick={(e) => {e.stopPropagation();setSelectedJob(app);}}>
                                             View
+                                        </button>
+                                        <button className="btn btn-outline-danger btn-sm" onClick={(e) => {e.stopPropagation(); handleDeleteClick(app);}}>
+                                            Delete
                                         </button>
                                     </td>
                                 </tr>
@@ -49,8 +67,12 @@ function ApplicationTable({ filteredJobs, setSelectedJob, getStatusBadge, format
                     )}
                 </div>
             </div>
+
+            <DeleteApplication isOpen={isDeleteOpen} onClose={() => { setIsDeleteOpen(false); setApplicationToDelete(null); }}
+                onConfirm={handleDeleteConfirm} application={applicationToDelete} getStatusBadge={getStatusBadge}   // Pass the specific application to delete
+            />
         </div>
-    )
+    );
 }
 
 export default ApplicationTable;

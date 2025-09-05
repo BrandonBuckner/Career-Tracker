@@ -3,13 +3,11 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
-using Xunit;
 using JobTracker.Server.Models;
 using JobTracker.Server.Data;
 using System.Text.Json;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore.Query;
+
 
 namespace JobTracker.Server.Tests
 {
@@ -392,6 +390,22 @@ namespace JobTracker.Server.Tests
             };
             var response = await _client.PostAsJsonAsync("/api/JobApplication", newApplication);
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task DeleteApplication_ReturnsNoContent()
+        {
+            var response = await _client.DeleteAsync("/api/JobApplication/6");
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            var getResponse = await _client.GetAsync("/api/JobApplication/6");
+            Assert.Equal(HttpStatusCode.NotFound, getResponse.StatusCode);
+        }
+
+        [Fact]
+        public async Task DeleteFakeApplication_ReturnsNotFound()
+        {
+            var response = await _client.DeleteAsync("/api/JobApplication/10");
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
     }
 }

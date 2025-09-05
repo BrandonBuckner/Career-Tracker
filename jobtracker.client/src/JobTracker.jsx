@@ -77,6 +77,25 @@ function JobTracker() {
         setApplicationsLoaded(false);
     };
 
+    const handleCreateApplication = (newApplication) => {
+        setJobApplications(prevApps => [newApplication, ...prevApps]);
+        setApplicationsLoaded(true);
+        setActiveView('applications');
+        setDashboardLoaded(false);
+    };
+
+    const handleDeleteApplication = (deletedApplicationId) => {
+        if (applicationsLoaded) {
+            setJobApplications(prevApps => prevApps.filter(app => app.id !== deletedApplicationId));
+            setApplicationsLoaded(true);
+        }
+        setDashboardLoaded(false);
+        setSelectedJob(null);
+        if (activeView === 'applications' && jobApplications.length === 1) {
+            setActiveView('dashboard');
+        }
+    };
+
     // Formats date and fixes the timezone issue by converting it to local time
     // TODO: Possibly refactor format date (may need to convert to string)
     const formatDate = (dateString) => {
@@ -146,10 +165,13 @@ function JobTracker() {
                     getStatusBadge={getStatusBadge}
                     formatDate={formatDate}
                     onJobUpdate={handleJobUpdate} 
+                    onDeleteApplication={handleDeleteApplication}
                 />
                 : (activeView === 'dashboard' ?
                     <Dashboard statsData={statsData} recentJobs={recentJobs} setSelectedJob={setSelectedJob} setActiveView={setActiveView} formatDate={formatDate} getStatusBadge={getStatusBadge} />
-                    : <ApplicationsPage jobApplications={jobApplications} setSelectedJob={setSelectedJob} getStatusBadge={getStatusBadge} formatDate={formatDate}/>
+                    : <ApplicationsPage jobApplications={jobApplications} setSelectedJob={setSelectedJob} getStatusBadge={getStatusBadge} formatDate={formatDate}
+                        onCreateApplication={handleCreateApplication} onDeleteApplication={handleDeleteApplication}
+                    />
                 )
             }
         </div>

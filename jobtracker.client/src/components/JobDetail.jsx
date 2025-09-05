@@ -1,9 +1,11 @@
 ﻿import { useState } from 'react';
 import JobDetailView from './JobDetailView';
 import JobDetailEdit from './JobDetailEdit';
+import DeleteApplication from './DeleteApplication';
 
-function JobDetail({ activeView, selectedJob, setSelectedJob, getStatusBadge, formatDate, onJobUpdate }) {
+function JobDetail({ activeView, selectedJob, setSelectedJob, getStatusBadge, formatDate, onJobUpdate, onDeleteApplication }) {
     const [isEditing, setIsEditing] = useState(false);
+    const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
     // Start editing mode
     const startEdit = () => {
@@ -20,9 +22,9 @@ function JobDetail({ activeView, selectedJob, setSelectedJob, getStatusBadge, fo
         if (onJobUpdate) {
             onJobUpdate(updatedData);
         }
-
         setIsEditing(false);
     };
+
 
     return (
         <div className="container-fluid">
@@ -35,11 +37,20 @@ function JobDetail({ activeView, selectedJob, setSelectedJob, getStatusBadge, fo
                     ← Back to {activeView === 'dashboard' ? 'Dashboard' : 'Applications'}
                 </button>
 
-                {!isEditing && (
-                    <button className="btn btn-primary" onClick={startEdit}>
-                        Edit
-                    </button>
-                )}
+                <div className="d-flex gap-2">
+                    {!isEditing ? (
+                        <button className="btn btn-primary" onClick={startEdit}>
+                            <i className="bi bi-pencil me-2"></i>
+                            Edit
+                        </button>
+                    ) : (
+                        <div>
+                            <button className="btn btn-outline-danger" onClick={() => setIsDeleteOpen(true)}>
+                                Delete
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Render appropriate component based on mode */}
@@ -57,6 +68,15 @@ function JobDetail({ activeView, selectedJob, setSelectedJob, getStatusBadge, fo
                     formatDate={formatDate}
                 />
             )}
+
+            {/* Delete confirmation modal */}
+            <DeleteApplication
+                isOpen={isDeleteOpen}
+                onClose={() => setIsDeleteOpen(false)}
+                onConfirm={onDeleteApplication}
+                application={selectedJob}
+                getStatusBadge={getStatusBadge}
+            />
         </div>
     );
 }
