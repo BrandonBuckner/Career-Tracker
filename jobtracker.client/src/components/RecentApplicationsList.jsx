@@ -22,7 +22,7 @@ function RecentApplicationsList({ recentJobs, setSelectedJob, formatDate, getSta
                             </div>
                         ))}
 
-                        <div className="text-center mt-3">
+                        <div className="text-center mt-3 pb-3">
                             <button className="btn btn-outline-primary" onClick={() => setActiveView('applications')}>
                                 View All Applications
                             </button>
