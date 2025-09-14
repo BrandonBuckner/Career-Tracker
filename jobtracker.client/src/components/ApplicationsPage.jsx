@@ -13,7 +13,7 @@ function ApplicationsPage({ jobApplications, setSelectedJob, getStatusBadge, for
         const matchesSearch = job.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             job.role.toLowerCase().includes(searchTerm.toLowerCase());
         return matchesStatus && matchesSearch;
-    }); 
+    });
 
     const handleCreateApplication = async (applicationData) => {
         try {
